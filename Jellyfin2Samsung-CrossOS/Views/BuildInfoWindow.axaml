@@ -4,9 +4,9 @@
         xmlns:viewModels="clr-namespace:Jellyfin2Samsung.ViewModels"
         x:DataType="viewModels:BuildInfoViewModel"
         SizeToContent="WidthAndHeight"
-        MinWidth="650"
-        MaxWidth="900"
-        MinHeight="500"
+        MinWidth="900"
+        MaxWidth="1200"
+        MinHeight="520"
         WindowStartupLocation="CenterOwner"
         Title="Jellyfin Tizen Versions">
 
@@ -15,112 +15,175 @@
 		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
 	</Window.Styles>
 
-		<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-            Padding="16"
-            CornerRadius="8"
-            Margin="12"
-		    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-            BorderThickness="1">
+	<Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+			Padding="16"
+			CornerRadius="8"
+			Margin="12"
+			BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+			BorderThickness="1">
 
 		<Border.Effect>
 			<DropShadowEffect BlurRadius="15"
-                              OffsetX="2"
-                              OffsetY="2"
-                              Color="#00000020"
-                              Opacity="0.15"/>
+							  OffsetX="2"
+							  OffsetY="2"
+							  Color="#00000020"
+							  Opacity="0.15"/>
 		</Border.Effect>
 
-		<StackPanel Spacing="20">
+		<StackPanel Spacing="16">
 
+			<!-- Header -->
 			<Border Background="#2C3E50"
-                    Padding="14,10"
-                    CornerRadius="6">
+					Padding="14,10"
+					CornerRadius="6">
 				<TextBlock Text="Jellyfin Tizen Build Versions"
-                           Foreground="White"
-                           FontWeight="SemiBold"
-                           FontSize="18"
-                           HorizontalAlignment="Center"/>
+						   Foreground="White"
+						   FontWeight="SemiBold"
+						   FontSize="18"
+						   HorizontalAlignment="Center"/>
 			</Border>
 
+			<!-- Two-column layout -->
+			<Grid ColumnDefinitions="*,340"
+				  ColumnSpacing="18">
 
-			<Border Background="#34495E"
-                    Padding="10"
-                    CornerRadius="6">
-				<TextBlock Text="Official Jellyfin Builds"
-                           Foreground="White"
-                           FontWeight="Medium"
-                           FontSize="15"/>
-			</Border>
+				<!-- ================= LEFT COLUMN ================= -->
+				<StackPanel Grid.Column="0" Spacing="16">
 
-			<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    Height="200">
-				<DataGrid ItemsSource="{Binding JellyfinVersions}"
-                          AutoGenerateColumns="False"
-                          HeadersVisibility="Column"
-                          GridLinesVisibility="All"
-                          IsReadOnly="True"
-                          ColumnWidth="*">
-					<DataGrid.Columns>
-						<DataGridTextColumn Header="File name" Width="180"
-                                            Binding="{Binding FileName}" />
-						<DataGridTemplateColumn Header="Description" Width="*">
-							<DataGridTemplateColumn.CellTemplate>
-								<DataTemplate>
-									<TextBlock Text="{Binding Description}"
-                                               TextWrapping="Wrap"
-                                               Padding="4"
-                                               VerticalAlignment="Center"/>
-								</DataTemplate>
-							</DataGridTemplateColumn.CellTemplate>
-						</DataGridTemplateColumn>
-					</DataGrid.Columns>
-				</DataGrid>
-			</Border>
+					<Border Background="#34495E"
+							Padding="10"
+							CornerRadius="6">
+						<TextBlock Text="Jellyfin Builds"
+								   Foreground="White"
+								   FontWeight="Medium"
+								   FontSize="15"/>
+					</Border>
+
+					<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+							BorderThickness="1"
+							CornerRadius="4"
+							Height="220">
+						<DataGrid ItemsSource="{Binding JellyfinVersions}"
+								  AutoGenerateColumns="False"
+								  HeadersVisibility="Column"
+								  GridLinesVisibility="All"
+								  IsReadOnly="True"
+								  ColumnWidth="*">
+							<DataGrid.Columns>
+								<DataGridTextColumn Header="File name" Width="180"
+													Binding="{Binding FileName}" />
+								<DataGridTemplateColumn Header="Description" Width="*">
+									<DataGridTemplateColumn.CellTemplate>
+										<DataTemplate>
+											<TextBlock Text="{Binding Description}"
+													   TextWrapping="Wrap"
+													   Padding="4"
+													   VerticalAlignment="Center"/>
+										</DataTemplate>
+									</DataGridTemplateColumn.CellTemplate>
+								</DataGridTemplateColumn>
+							</DataGrid.Columns>
+						</DataGrid>
+					</Border>
+
+					<Border Background="#34495E"
+							Padding="10"
+							CornerRadius="6"
+							Margin="0,6,0,0">
+						<TextBlock Text="Community Applications"
+								   Foreground="White"
+								   FontWeight="Medium"
+								   FontSize="15"/>
+					</Border>
+
+					<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+							BorderThickness="1"
+							CornerRadius="4"
+							Height="280">
+						<DataGrid ItemsSource="{Binding CommunityApps}"
+								  AutoGenerateColumns="False"
+								  HeadersVisibility="Column"
+								  GridLinesVisibility="All"
+								  RowHeight="32"
+								  IsReadOnly="True"
+								  ColumnWidth="*">
+							<DataGrid.Columns>
+								<DataGridTextColumn Header="Application" Width="180"
+													Binding="{Binding FileName}" />
+								<DataGridTextColumn Header="Description" Width="*"
+													Binding="{Binding Description}" />
+							</DataGrid.Columns>
+						</DataGrid>
+					</Border>
+
+				</StackPanel>
+
+				<!-- ================= RIGHT COLUMN ================= -->
+				<!-- CompileBindings off so you can iterate on option types freely -->
+				<StackPanel Grid.Column="1"
+							Spacing="10"
+							x:CompileBindings="False">
+
+					<Border Background="#34495E"
+							Padding="10"
+							CornerRadius="6">
+						<TextBlock Text="App Preview"
+								   Foreground="White"
+								   FontWeight="Medium"
+								   FontSize="15"/>
+					</Border>
+
+					<!-- Dropdown: TEXT ONLY (no preview image here) -->
+					<ComboBox ItemsSource="{Binding ProviderOptions}"
+							  SelectedItem="{Binding SelectedProviderOption, Mode=TwoWay}"
+							  MinWidth="320"
+							  HorizontalAlignment="Stretch"
+							  DisplayMemberBinding="{Binding DisplayName}"/>
+
+					<!-- Preview card: image shows ONLY here -->
+					<Border Height="320"
+							CornerRadius="12"
+							ClipToBounds="True"
+							Background="#22000000">
+						<Grid>
+							<!-- fallback text behind -->
+							<StackPanel VerticalAlignment="Center"
+										HorizontalAlignment="Center"
+										Spacing="6"
+										Margin="12">
+								<TextBlock Text="No preview available"
+										   FontWeight="SemiBold"
+										   FontSize="14"
+										   HorizontalAlignment="Center"/>
+								<TextBlock Text="This app has no thumbnail."
+										   Opacity="0.7"
+										   FontSize="12"
+										   HorizontalAlignment="Center"/>
+							</StackPanel>
+
+							<!-- image on top (if null, it simply won't render) -->
+							<Image Source="{Binding SelectedProviderOption.PreviewImage}"
+								   Stretch="Uniform"
+								   StretchDirection="DownOnly"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+						</Grid>
+					</Border>
 
 
-			<Border Background="#34495E"
-                    Padding="10"
-                    CornerRadius="6"
-                    Margin="0,10,0,0">
-				<TextBlock Text="Community Applications"
-                           Foreground="White"
-                           FontWeight="Medium"
-                           FontSize="15"/>
-			</Border>
+				</StackPanel>
 
-			<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    Height="260">
-				<DataGrid ItemsSource="{Binding CommunityApps}"
-                          AutoGenerateColumns="False"
-                          HeadersVisibility="Column"
-                          GridLinesVisibility="All"
-                          RowHeight="32"
-                          IsReadOnly="True"
-                          ColumnWidth="*">
-					<DataGrid.Columns>
-						<DataGridTextColumn Header="Application" Width="180"
-                                            Binding="{Binding FileName}" />
-						<DataGridTextColumn Header="Description" Width="*"
-                                            Binding="{Binding Description}" />
-					</DataGrid.Columns>
-				</DataGrid>
-			</Border>
+			</Grid>
 
-
+			<!-- Footer -->
 			<StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Margin="0,10,0,0">
+						HorizontalAlignment="Right"
+						Margin="0,6,0,0">
 				<Button Content="Close"
-                        Width="100"
-                        Command="{Binding CloseCommand}"/>
+						Width="100"
+						Command="{Binding CloseCommand}"/>
 			</StackPanel>
 
 		</StackPanel>
-
 	</Border>
-
 </Window>
