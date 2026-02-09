@@ -92,6 +92,7 @@ jobs:
             -c Release -r linux-x64 -p:SelfContained=true \
             -o publish/linux-x64
 
+          mkdir -p dist
           tar -czf "dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-x64.tar.gz" \
             -C publish/linux-x64 .
 
@@ -112,8 +113,9 @@ jobs:
           mkdir -p $PKG/opt/jellyfin2samsung \
                    $PKG/usr/share/{applications,icons/hicolor/256x256/apps}
 
-          cp publish/linux-x64/Jellyfin2Samsung $PKG/opt/jellyfin2samsung/
+          cp -R publish/linux-x64/. $PKG/opt/jellyfin2samsung/
           chmod +x $PKG/opt/jellyfin2samsung/Jellyfin2Samsung
+
           cp jellyfin.png $PKG/usr/share/icons/hicolor/256x256/apps/jellyfin2samsung.png
 
           cat > $PKG/usr/share/applications/jellyfin2samsung.desktop <<EOF
@@ -140,9 +142,32 @@ jobs:
       # ---------------- APPIMAGE ----------------
       - name: Build AppImage
         run: |
-          mkdir -p AppDir/usr/bin
-          cp publish/linux-x64/Jellyfin2Samsung AppDir/usr/bin/
+          sudo apt-get update
+          sudo apt-get install -y fuse libfuse2
+          
+          rm -rf AppDir
+          mkdir -p AppDir/usr/lib/jellyfin2samsung AppDir/usr/bin
+
+          # ✅ Copy the FULL publish output (recursive)
+          cp -R publish/linux-x64/. AppDir/usr/lib/jellyfin2samsung/
+          chmod +x AppDir/usr/lib/jellyfin2samsung/Jellyfin2Samsung
+
+          # Launcher in PATH
+          cat > AppDir/usr/bin/Jellyfin2Samsung <<'EOF'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          exec "$HERE/../lib/jellyfin2samsung/Jellyfin2Samsung" "$@"
+          EOF
           chmod +x AppDir/usr/bin/Jellyfin2Samsung
+
+          # AppRun (explicit, reliable)
+          cat > AppDir/AppRun <<'EOF'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          exec "$HERE/usr/bin/Jellyfin2Samsung" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+
           cp jellyfin.png AppDir/jellyfin2samsung.png
 
           cat > AppDir/jellyfin2samsung.desktop <<EOF
@@ -158,10 +183,8 @@ jobs:
             https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage \
             -o appimagetool.AppImage
           chmod +x appimagetool.AppImage
-          ./appimagetool.AppImage --appimage-extract
 
-          ARCH=x86_64 squashfs-root/AppRun \
-            AppDir \
+          ./appimagetool.AppImage AppDir \
             dist/${PRODUCT_NAME}-${VERSION_TAG}-linux-x64.AppImage
 
       # ---------------- RELEASE (UPDATE SAME TAG EVERY COMMIT) ----------------
