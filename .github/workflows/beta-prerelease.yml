@@ -142,6 +142,9 @@ jobs:
       # ---------------- APPIMAGE ----------------
       - name: Build AppImage
         run: |
+          sudo apt-get update
+          sudo apt-get install -y fuse libfuse2
+          
           rm -rf AppDir
           mkdir -p AppDir/usr/lib/jellyfin2samsung AppDir/usr/bin
 
