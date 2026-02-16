@@ -661,16 +661,17 @@ namespace Jellyfin2Samsung.Services
 
         private async Task<(bool isInstalled, string? appId)> CheckForInstalledApp(string tvIpAddress, string packageUrl)
         {
-            var expectedAppId = await FileHelper.ReadWgtTizenApplicationId(packageUrl); // e.g. "Moonfin000.moonfin"
+            var expectedAppId = await FileHelper.ReadWgtApplicationId(packageUrl);
+        
             var result = await _processHelper.RunCommandAsync(TizenSdbPath!, $"apps {tvIpAddress}");
             var output = result?.Output ?? string.Empty;
         
-            // No listing: assume installed, but return the *expected* app id so overwrite/uninstall can target it.
             if (string.IsNullOrWhiteSpace(output) ||
                 output.Contains("Could not retrieve app list", StringComparison.OrdinalIgnoreCase) ||
                 output.Contains("Remote closed channel", StringComparison.OrdinalIgnoreCase))
             {
-                return (!string.IsNullOrWhiteSpace(expectedAppId))
+                // No listing → assume installed, and return expected id (Moonfin000.moonfin, Jellyfin..., etc.)
+                return !string.IsNullOrWhiteSpace(expectedAppId)
                     ? (true, expectedAppId)
                     : (true, null);
             }
@@ -688,9 +689,7 @@ namespace Jellyfin2Samsung.Services
         
             if (!string.IsNullOrWhiteSpace(expectedAppId) &&
                 tvAppId.Equals(expectedAppId, StringComparison.Ordinal))
-            {
                 return (true, tvAppId);
-            }
         
             return (false, null);
         }
