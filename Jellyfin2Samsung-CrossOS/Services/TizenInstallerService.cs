@@ -661,39 +661,39 @@ namespace Jellyfin2Samsung.Services
 
         private async Task<(bool isInstalled, string? appId)> CheckForInstalledApp(string tvIpAddress, string packageUrl)
         {
+            var expectedAppId = await FileHelper.ReadWgtTizenApplicationId(packageUrl); // e.g. "Moonfin000.moonfin"
             var result = await _processHelper.RunCommandAsync(TizenSdbPath!, $"apps {tvIpAddress}");
             var output = result?.Output ?? string.Empty;
-
+        
+            // No listing: assume installed, but return the *expected* app id so overwrite/uninstall can target it.
             if (string.IsNullOrWhiteSpace(output) ||
                 output.Contains("Could not retrieve app list", StringComparison.OrdinalIgnoreCase) ||
                 output.Contains("Remote closed channel", StringComparison.OrdinalIgnoreCase))
             {
-                string? packageAppId = await FileHelper.ReadWgtPackageId(packageUrl);
-                if (!string.IsNullOrWhiteSpace(packageAppId))
-                    return (true, $"{packageAppId}.{Constants.AppIdentifiers.JellyfinAppName}");
-
-                return (true, null);
+                return (!string.IsNullOrWhiteSpace(expectedAppId))
+                    ? (true, expectedAppId)
+                    : (true, null);
             }
-
+        
             var baseSearch = Path.GetFileNameWithoutExtension(packageUrl).Split('-')[0];
-
             var blockRegex = RegexPatterns.TizenApp.CreateAppBlockByTitleRegex(baseSearch);
             var blockMatch = blockRegex.Match(output);
-
+        
             if (!blockMatch.Success)
                 return (false, null);
-
+        
             var block = blockMatch.Value;
             var appIdMatch = RegexPatterns.TizenApp.AppTizenId.Match(block);
-            string tvAppId = appIdMatch.Groups[1].Value.Trim();
-            string? packageAppId2 = await FileHelper.ReadWgtPackageId(packageUrl);
-
-            if (tvAppId == $"{packageAppId2}.{Constants.AppIdentifiers.JellyfinAppName}")
+            var tvAppId = appIdMatch.Groups[1].Value.Trim();
+        
+            if (!string.IsNullOrWhiteSpace(expectedAppId) &&
+                tvAppId.Equals(expectedAppId, StringComparison.Ordinal))
+            {
                 return (true, tvAppId);
-
+            }
+        
             return (false, null);
         }
-
 
         private async Task<string> GetInstalledAppId(string tvIpAddress, string appTitle)
         {
