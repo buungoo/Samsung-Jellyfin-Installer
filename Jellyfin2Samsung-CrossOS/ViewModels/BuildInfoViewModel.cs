@@ -283,8 +283,6 @@ namespace Jellyfin2Samsung.ViewModels
                 var col2 = row.Groups[2].Value.Trim();
                 var col3 = row.Groups[3].Value.Trim();
 
-                Debug.WriteLine(col3);
-
                 if (!headerSkipped && col1.Contains("Application", StringComparison.OrdinalIgnoreCase))
                 {
                     headerSkipped = true;

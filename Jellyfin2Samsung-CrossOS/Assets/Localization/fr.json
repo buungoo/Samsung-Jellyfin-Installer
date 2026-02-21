@@ -145,5 +145,7 @@
   "UpdateApplying": "Application de la mise à jour",
   "UpdateApplyingMessage": "L'application va redémarrer pour terminer la mise à jour.",
   "UpdateError": "Échec de la mise à jour",
-  "UpdateCheckFailed": "Échec de la vérification des mises à jour"
+  "UpdateCheckFailed": "Échec de la vérification des mises à jour",
+  "IncompatiblePackage": "Version du package non compatible avec l'appareil.",
+  "IncompatiblePackageDetailed": "La version du package {0} n'est pas compatible avec Tizen OS {1}"
 }

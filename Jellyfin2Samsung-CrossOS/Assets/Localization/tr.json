@@ -145,5 +145,7 @@
   "UpdateApplying": "Güncelleme uygulanıyor",
   "UpdateApplyingMessage": "Güncellemeyi tamamlamak için uygulama yeniden başlatılacak.",
   "UpdateError": "Güncelleme başarısız",
-  "UpdateCheckFailed": "Güncelleme kontrolü başarısız"
+  "UpdateCheckFailed": "Güncelleme kontrolü başarısız",
+  "IncompatiblePackage": "Paket sürümü cihazla uyumlu değil.",
+  "IncompatiblePackageDetailed": "Paket sürümü {0}, Tizen OS {1} ile uyumlu değil"
 }

@@ -145,5 +145,7 @@
   "UpdateApplying": "Update wird angewendet",
   "UpdateApplyingMessage": "Die Anwendung wird neu gestartet, um das Update abzuschließen.",
   "UpdateError": "Update fehlgeschlagen",
-  "UpdateCheckFailed": "Update-Überprüfung fehlgeschlagen"
+  "UpdateCheckFailed": "Update-Überprüfung fehlgeschlagen",
+  "IncompatiblePackage": "Paketversion ist nicht mit dem Gerät kompatibel.",
+  "IncompatiblePackageDetailed": "Paketversion {0} nicht kompatibel mit Tizen OS {1}"
 }

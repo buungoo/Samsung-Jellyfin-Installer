@@ -23,7 +23,6 @@ namespace Jellyfin2Samsung.Services
         private readonly IDialogService _dialogService;
         private readonly AppSettings _appSettings;
         private readonly JellyfinPackagePatcher _jellyfinWebPackagePatcher;
-        private readonly JellyfinApiClient _jellyfinApiClient;
         private readonly ProcessHelper _processHelper;
 
         public string? TizenSdbPath { get; private set; }
@@ -41,7 +40,6 @@ namespace Jellyfin2Samsung.Services
             _dialogService = dialogService;
             _appSettings = appSettings;
             _jellyfinWebPackagePatcher = jellyfinWebPackagePatcher;
-            _jellyfinApiClient = jellyfinApiClient;
             _processHelper = processHelper;
         }
 
@@ -223,7 +221,7 @@ namespace Jellyfin2Samsung.Services
                     return InstallResult.FailureResult(Constants.LocalizationKeys.InstallTizenSdb.Localized());
                 }
             }
-
+        
             try
             {
                 // Step 1: Prepare device and check for existing installations
@@ -241,7 +239,20 @@ namespace Jellyfin2Samsung.Services
                     return InstallResult.FailureResult(Constants.LocalizationKeys.TvNameNotFound.Localized());
                 }
 
-                // Step 3: Handle certificate selection/generation
+                // Step 3: Check is WGT is compatible with TV's Tizen version
+                var requiredTizenVersion = await FileHelper.ReadWgtRequiredVersion(packageUrl);
+                if (requiredTizenVersion != null)
+                {
+                    var requiredVersion = new Version(requiredTizenVersion);
+                    if (deviceInfo.TizenVersion < requiredVersion)
+                    {
+                        progress?.Invoke(Constants.LocalizationKeys.IncompatiblePackage.Localized());
+                        Trace.WriteLine($"Package requires Tizen {requiredVersion} but device has {deviceInfo.TizenVersion}");
+                        return InstallResult.FailureResult(string.Format(Constants.LocalizationKeys.IncompatiblePackageDetailed.Localized(), requiredTizenVersion, deviceInfo.TizenVersion));
+                    }
+                }
+
+                // Step 4: Handle certificate selection/generation
                 var certificateResult = await HandleCertificateAsync(
                     tvIpAddress,
                     deviceInfo,
@@ -253,13 +264,17 @@ namespace Jellyfin2Samsung.Services
                 if (!certificateResult.Success)
                     return certificateResult.InstallResult;
 
-                // Step 4: Apply Jellyfin configuration if needed
+                // Step 5: Apply Jellyfin configuration if needed
                 if (packageUrl.Contains(Constants.AppIdentifiers.JellyfinAppName, StringComparison.OrdinalIgnoreCase))
+                {
+                    Trace.WriteLine("Applying Jellyfin Configuration");
                     await ApplyConfigurationAsync(packageUrl, progress);
+                }
 
-                // Step 5: Resign package if needed
+                // Step 6: Resign package if needed
                 if (certificateResult.RequiresResign)
                 {
+                    Trace.WriteLine("Resigning package with new certificate");
                     progress?.Invoke(Constants.LocalizationKeys.PackageAndSign.Localized());
                     var resignResults = await ResignPackageAsync(
                         packageUrl,
@@ -269,13 +284,14 @@ namespace Jellyfin2Samsung.Services
 
                     if (resignResults.ExitCode != 0 || resignResults.Output.Contains(Constants.TizenErrorCodes.ResignFailed))
                     {
+                        Trace.WriteLine($"Resign output: {resignResults.Output}");
                         progress?.Invoke(Constants.LocalizationKeys.InstallationFailed.Localized());
                         _appSettings.TryOverwrite = false;
                         return InstallResult.FailureResult($"Package resigning failed: {resignResults.Output}");
                     }
                 }
 
-                // Step 6: Install package and handle results
+                // Step 7: Install package and handle results
                 progress?.Invoke(Constants.LocalizationKeys.InstallingPackage.Localized());
 
                 return await HandleInstallationResultAsync(
@@ -316,6 +332,7 @@ namespace Jellyfin2Samsung.Services
 
             bool canDelete = await GetTvDiagnoseAsync(tvIpAddress);
             var (alreadyInstalled, appId) = await CheckForInstalledApp(tvIpAddress, packageUrl);
+            Trace.WriteLine($"Diagnose canDelete: {canDelete}, alreadyInstalled: {alreadyInstalled}, appId: {appId}");
 
             if (!canDelete && alreadyInstalled)
             {
@@ -328,7 +345,11 @@ namespace Jellyfin2Samsung.Services
                 if (_appSettings.DeletePreviousInstall)
                 {
                     progress?.Invoke(Constants.LocalizationKeys.DeleteExistingVersion.Localized());
-                    await UninstallPackageAsync(tvIpAddress, appId!);
+                    var uninstallResult = await UninstallPackageAsync(tvIpAddress, appId!);
+                    Trace.WriteLine($"Uninstall output: {uninstallResult.Output}");
+                    if (uninstallResult.Output.Contains(Constants.TizenErrorCodes.NotInstalled))
+                        return InstallResult.SuccessResult();
+
 
                     var (stillInstalled, _) = await CheckForInstalledApp(tvIpAddress, packageUrl);
                     if (stillInstalled)
@@ -534,11 +555,13 @@ namespace Jellyfin2Samsung.Services
 
                 if (_appSettings.TryOverwrite)
                 {
+                    Trace.WriteLine("Installation failed, insufficient space! retrying with remove previous version");
                     _appSettings.TryOverwrite = false;
                     return await InstallPackageAsync(packageUrl, tvIpAddress, cancellationToken, progress, onSamsungLoginStarted);
                 }
 
                 _appSettings.TryOverwrite = false;
+                Trace.WriteLine("Installation failed, insufficient space!");
                 return InstallResult.FailureResult($"Installation failed: {Constants.LocalizationKeys.InsufficientSpace.Localized()}");
             }
 
@@ -661,24 +684,36 @@ namespace Jellyfin2Samsung.Services
 
         private async Task<(bool isInstalled, string? appId)> CheckForInstalledApp(string tvIpAddress, string packageUrl)
         {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"apps {tvIpAddress}");
+            var result = await _processHelper.RunCommandAsync(TizenSdbPath!, $"apps {tvIpAddress}");
+            var output = result?.Output ?? string.Empty;
+
+            // Read what the WGT *claims* its app id is (best effort fallback for "no listing" cases)
+            var wgtAppId = await FileHelper.ReadWgtApplicationId(packageUrl);
+
+            // Case 3: no listing -> assume installed, return WGT app id as best-effort
+            if (string.IsNullOrWhiteSpace(output) ||
+                output.Contains("Could not retrieve app list", StringComparison.OrdinalIgnoreCase) ||
+                output.Contains("Remote closed channel", StringComparison.OrdinalIgnoreCase))
+            {
+                return (true, wgtAppId);
+            }
+
+            // Case 1/2: listing returned -> parse TV output
             var baseSearch = Path.GetFileNameWithoutExtension(packageUrl).Split('-')[0];
-
             var blockRegex = RegexPatterns.TizenApp.CreateAppBlockByTitleRegex(baseSearch);
-            var blockMatch = blockRegex.Match(output.Output);
+            var blockMatch = blockRegex.Match(output);
 
+            // Case 2: listing returned but not present
             if (!blockMatch.Success)
                 return (false, null);
 
+            // Case 1: listing returned and present -> TV's id is the uninstall/overwrite truth
             var block = blockMatch.Value;
             var appIdMatch = RegexPatterns.TizenApp.AppTizenId.Match(block);
-            string tvAppId = appIdMatch.Groups[1].Value.Trim();
-            string? packageAppId = await FileHelper.ReadWgtPackageId(packageUrl);
+            var tvAppId = appIdMatch.Success ? appIdMatch.Groups[1].Value.Trim() : null;
 
-            if (tvAppId == $"{packageAppId}.{Constants.AppIdentifiers.JellyfinAppName}")
-                return (true, tvAppId);
-
-            return (false, null);
+            // If we matched by title but couldn't parse ID, fall back to WGT ID
+            return (true, !string.IsNullOrWhiteSpace(tvAppId) ? tvAppId : wgtAppId);
         }
 
         private async Task<string> GetInstalledAppId(string tvIpAddress, string appTitle)

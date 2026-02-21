@@ -145,5 +145,7 @@
   "UpdateApplying": "Anvender opdatering",
   "UpdateApplyingMessage": "Applikationen genstarter for at fuldføre opdateringen.",
   "UpdateError": "Opdatering mislykkedes",
-  "UpdateCheckFailed": "Kunne ikke tjekke for opdateringer"
+  "UpdateCheckFailed": "Kunne ikke tjekke for opdateringer",
+  "IncompatiblePackage": "Pakkeversionen er ikke kompatibel med enheden.",
+  "IncompatiblePackageDetailed": "Pakkeversion {0} er ikke kompatibel med Tizen OS {1}"
 }

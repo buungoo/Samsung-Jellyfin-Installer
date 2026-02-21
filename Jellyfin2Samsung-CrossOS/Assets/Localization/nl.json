@@ -145,5 +145,7 @@
   "UpdateApplying": "Update toepassen",
   "UpdateApplyingMessage": "De applicatie wordt opnieuw gestart om de update te voltooien.",
   "UpdateError": "Update mislukt",
-  "UpdateCheckFailed": "Controle op updates mislukt"
+  "UpdateCheckFailed": "Controle op updates mislukt",
+  "IncompatiblePackage": "Pakketversie niet compatibel met apparaat.",
+  "IncompatiblePackageDetailed": "Pakketversie {0} niet compatibel met Tizen OS {1}"
 }
