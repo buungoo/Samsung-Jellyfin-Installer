@@ -27,7 +27,7 @@ env:
 
 jobs:
 # ======================================================
-# STABLE RELEASE + WINDOWS + LINUX (tar.gz + deb + AppImage)
+# STABLE RELEASE + WINDOWS + LINUX (tar.gz + deb)
 # ======================================================
   stable-release:
     if: |
@@ -135,7 +135,7 @@ jobs:
             echo "|----------|--------|-------|"
             echo "| 🍎 macOS (.app + dmg) | ✅ Stable | ARM64 + Intel |"
             echo "| 🍎 macOS (CLI) | ✅ Stable | Per-arch tar.gz |"
-            echo "| 🐧 Linux | ✅ Stable | tar.gz / .deb / AppImage |"
+            echo "| 🐧 Linux | ✅ Stable | tar.gz / .deb |"
             echo "| 🪟 Windows | ✅ Stable | CI-built |"
             echo ""
             echo "---"
