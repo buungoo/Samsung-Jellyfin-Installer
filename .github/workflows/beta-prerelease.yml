@@ -67,7 +67,7 @@ jobs:
             echo "|----------|--------|-------|"
             echo "| 🍎 macOS (.app + dmg) | ⚠️ Beta | ARM64 + Intel |"
             echo "| 🍎 macOS (CLI) | ⚠️ Beta | Per-arch tar.gz |"
-            echo "| 🐧 Linux | ⚠️ Beta | tar.gz / .deb / AppImage |"
+            echo "| 🐧 Linux | ⚠️ Beta | tar.gz / .deb |"
             echo "| 🪟 Windows | ⚠️ Beta | CI-built |"
           } > RELEASE_NOTES.md
 

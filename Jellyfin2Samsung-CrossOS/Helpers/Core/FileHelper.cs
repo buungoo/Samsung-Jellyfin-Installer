@@ -111,6 +111,16 @@ namespace Jellyfin2Samsung.Helpers.Core
             var match = RegexPatterns.WgtConfig.TizenApplicationId.Match(configContent);
             return match.Success ? match.Groups["pkg"].Value : null;
         }
+        public static async Task<string?> ReadExtractedWgtPackageId(string workspaceRoot)
+        {
+            var configPath = Path.Combine(workspaceRoot, "config.xml");
+            if (!File.Exists(configPath))
+                return null;
+
+            var configContent = await File.ReadAllTextAsync(configPath, Encoding.UTF8);
+            var match = RegexPatterns.WgtConfig.TizenApplicationId.Match(configContent);
+            return match.Success ? match.Groups["pkg"].Value : null;
+        }
         public static async Task<bool> ModifyWgtPackageId(string wgtPath)
         {
             if (!File.Exists(wgtPath))
