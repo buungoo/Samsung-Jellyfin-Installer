@@ -712,6 +712,12 @@ namespace Jellyfin2Samsung.Services
             var appIdMatch = RegexPatterns.TizenApp.AppTizenId.Match(block);
             var tvAppId = appIdMatch.Success ? appIdMatch.Groups[1].Value.Trim() : null;
 
+            // If we matched by title but ID isn't matching Config ID (jellyfin-secondary)
+            Debug.WriteLine($"TV APP ID: {tvAppId} - CONFIG APP ID: {wgtAppId}");
+            Trace.WriteLine($"TV APP ID: {tvAppId} - CONFIG APP ID: {wgtAppId}");
+            if (tvAppId != wgtAppId)
+                return (false, null);
+
             // If we matched by title but couldn't parse ID, fall back to WGT ID
             return (true, !string.IsNullOrWhiteSpace(tvAppId) ? tvAppId : wgtAppId);
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -10,9 +11,14 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Fixes
 {
     public class FixYouTube
     {
-        // UPDATED PATCH - Properly integrates with Jellyfin's player lifecycle
+        private async Task<int> ResolveServicePortAsync(PackageWorkspace ws)
+        {
+            var packageId = await FileHelper.ReadExtractedWgtPackageId(ws.Root);
+            return packageId == "JepZAARz4r" ? 8124 : 8123;
+        }
         public async Task PatchPluginAsync(PackageWorkspace ws)
         {
+            int servicePort = await ResolveServicePortAsync(ws);
             var www = Path.Combine(ws.Root, "www");
             var utf8NoBom = new UTF8Encoding(false);
 
@@ -380,7 +386,7 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Fixes
 
   sLog('INIT_COMPLETE');
 })();
-""";
+""".Replace("http://localhost:8123", $"http://localhost:{servicePort}");
 
             foreach (var file in candidates)
             {
@@ -393,6 +399,7 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Fixes
         // 2. CREATE THE NODE.JS SERVICE (unchanged, but added mute support)
         public async Task CreateYouTubeResolverAsync(PackageWorkspace ws)
         {
+            int servicePort = await ResolveServicePortAsync(ws);
             var utf8NoBom = new UTF8Encoding(false);
             string serviceDir = Path.Combine(ws.Root, "service");
             string serviceJsPath = Path.Combine(serviceDir, "service.js");
@@ -529,13 +536,15 @@ function handler(req, res) {
 
 var server = http.createServer(handler);
 server.listen(PORT, LISTEN_HOST, function() { log('SERVER LISTENING ' + LISTEN_HOST + ':' + PORT); });
-""";
+""".Replace("var PORT = 8123", $"var PORT = {servicePort}")
+   .Replace("'origin': 'http://localhost:8123'", $"'origin': 'http://localhost:{servicePort}'");
             await File.WriteAllTextAsync(serviceJsPath, serviceJsContent, utf8NoBom);
         }
 
         // 3. UPDATE CONFIG.XML (unchanged)
         public async Task UpdateCorsAsync(PackageWorkspace ws)
         {
+            int servicePort = await ResolveServicePortAsync(ws);
             var path = Path.Combine(ws.Root, "config.xml");
             if (!File.Exists(path)) return;
 
@@ -564,10 +573,11 @@ server.listen(PORT, LISTEN_HOST, function() { log('SERVER LISTENING ' + LISTEN_H
                 ));
             }
 
-            string csp = "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
-                         "script-src * 'unsafe-inline' 'unsafe-eval' http://localhost:8123 https://www.youtube.com; " +
-                         "frame-src * http://localhost:8123 https://www.youtube.com; " +
-                         "connect-src * http://localhost:8123;";
+            // UpdateCorsAsync - the CSP string is short so interpolation is fine there since there's no JS braces involved:
+            string csp = $"default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
+                         $"script-src * 'unsafe-inline' 'unsafe-eval' http://localhost:{servicePort} https://www.youtube.com; " +
+                         $"frame-src * http://localhost:{servicePort} https://www.youtube.com; " +
+                         $"connect-src * http://localhost:{servicePort};";
 
             doc.Root.Add(new XElement(tizen + "content-security-policy", csp));
             doc.Root.Add(new XElement(tizen + "allow-mixed-content", "true"));
