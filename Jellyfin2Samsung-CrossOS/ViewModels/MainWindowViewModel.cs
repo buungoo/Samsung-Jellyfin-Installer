@@ -461,13 +461,21 @@ namespace Jellyfin2Samsung.ViewModels
 
                 if (customPaths?.Length > 0)
                 {
-                    await _packageHelper.InstallCustomPackagesAsync(
-                        customPaths,
-                        SelectedDevice,
-                        _samsungLoginCts.Token,
-                        progress => Dispatcher.UIThread.Post(() => StatusBar = progress),
-                        onSamsungLoginStarted: OnSamsungLoginStarted);
-
+                    try
+                    {
+                        await _packageHelper.InstallCustomPackagesAsync(
+                            customPaths,
+                            SelectedDevice,
+                            _samsungLoginCts.Token,
+                            progress => Dispatcher.UIThread.Post(() => StatusBar = progress),
+                            onSamsungLoginStarted: OnSamsungLoginStarted);
+                    }
+                    finally
+                    {
+                        IsSamsungLoginActive = false;
+                        _samsungLoginCts.Dispose();
+                        _samsungLoginCts = null;
+                    }
 
                     foreach (var customPath in customPaths)
                         if (!AppSettings.Default.KeepWGTFile)
@@ -606,45 +614,30 @@ namespace Jellyfin2Samsung.ViewModels
         private async Task LoadReleasesAsync(CancellationToken cancellationToken = default)
         {
             IsLoading = true;
-
             try
             {
                 var list = new List<GitHubRelease>();
-
                 async Task fetch(string url, string prefix, string name, int take = 1)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
                     var release = await _addLatestRelease.GetReleasesAsync(url, prefix, name, take);
                     if (release.Count > 0)
                         list.AddRange(release);
                 }
-
                 await fetch(AppSettings.Default.ReleasesUrl, "Jellyfin - ", string.Empty, 5);
                 await fetch(AppSettings.Default.MoonfinRelease, string.Empty, "Moonfin", 1);
                 await fetch(AppSettings.Default.JellyfinAvRelease, string.Empty, "Jellyfin - AVPlay", 1);
                 await fetch(AppSettings.Default.JellyfinAvRelease, string.Empty, "Jellyfin - AVPlay - 10.10z SmartHub", 1);
                 await fetch(AppSettings.Default.JellyfinLegacy, string.Empty, "Jellyfin - Legacy", 1);
                 await fetch(AppSettings.Default.CommunityRelease, string.Empty, "Tizen Community", 1);
-
                 cancellationToken.ThrowIfCancellationRequested();
-
                 Releases.Clear();
                 foreach (var r in list)
                     Releases.Add(r);
-
-                Releases.Add(new GitHubRelease
-                {
-                    Name = Constants.AppIdentifiers.CustomWgtFile,
-                    TagName = string.Empty,
-                    PublishedAt = string.Empty,
-                    Url = string.Empty,
-                    Assets = new List<Asset>()
-                });
             }
             catch (OperationCanceledException)
             {
-                throw; // Re-throw to be handled by caller
+                throw;
             }
             catch (Exception ex)
             {
@@ -653,10 +646,21 @@ namespace Jellyfin2Samsung.ViewModels
             }
             finally
             {
+                // Always add the custom WGT option, regardless of GitHub failures
+                if (!Releases.Any(r => r.Name == Constants.AppIdentifiers.CustomWgtFile))
+                {
+                    Releases.Add(new GitHubRelease
+                    {
+                        Name = Constants.AppIdentifiers.CustomWgtFile,
+                        TagName = string.Empty,
+                        PublishedAt = string.Empty,
+                        Url = string.Empty,
+                        Assets = new List<Asset>()
+                    });
+                }
                 IsLoading = false;
             }
         }
-
 
         private async Task LoadDevicesAsync(CancellationToken cancellationToken = default, bool virtualScan = false)
         {
