@@ -1,5 +1,8 @@
 # Pull Request Template
 
+## Branch
+- [ ] I branched off beta (not master) to develop this feature/fix
+
 ## Description
 
 Please include a summary of the change and which issue is fixed. Also include relevant motivation and context.
