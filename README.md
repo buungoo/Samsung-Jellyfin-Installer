@@ -18,9 +18,9 @@
   <br/>
   It handles device detection, certificates, and installation so you don’t have to fight with Tizen Studio or manual sideloading.
   <br/><br/>
-  🌐 Available in: Danish, Dutch, English, French, German, Turkish
+  🌐 Available in: Danish, Dutch, English, French, German, Portuguese, Turkish
   <br/>
-  🇩🇰 🇳🇱 🇬🇧 🇫🇷 🇩🇪 🇹🇷
+  🇩🇰 🇳🇱 🇬🇧 🇫🇷 🇩🇪 🇵🇹 🇹🇷 
 </p>
 
 ---
