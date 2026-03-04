@@ -84,7 +84,7 @@ We welcome pull requests! Please:
   ```bash
   git remote add upstream https://github.com/PatrickSt1991/Samsung-Jellyfin-Installer.git
   git fetch upstream
-  git rebase upstream/master
+  git rebase upstream/beta
   ```
 
 ---
