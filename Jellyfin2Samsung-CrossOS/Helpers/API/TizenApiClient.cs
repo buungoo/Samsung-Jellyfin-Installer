@@ -1,3 +1,4 @@
+using Jellyfin2Samsung.Helpers;
 using Jellyfin2Samsung.Helpers.Core;
 using Jellyfin2Samsung.Interfaces;
 using Jellyfin2Samsung.Models;
@@ -36,7 +37,7 @@ namespace Jellyfin2Samsung.Helpers.API
                 string jsonContent = await response.Content.ReadAsStringAsync();
                 var jsonObject = JsonNode.Parse(jsonContent);
 
-                var logFilePath = Path.Combine(AppContext.BaseDirectory, "Logs", $"debug_tv_api_{DateTime.Now:yyyy-MM-dd_HH-mm-ss-fff}.log");
+                var logFilePath = Path.Combine(AppSettings.LogPath, $"debug_tv_api_{DateTime.Now:yyyy-MM-dd_HH-mm-ss-fff}.log");
                 await File.WriteAllTextAsync(logFilePath, jsonContent);
 
 

@@ -3,6 +3,7 @@ using Jellyfin2Samsung.Helpers;
 using Jellyfin2Samsung.Helpers.API;
 using Jellyfin2Samsung.Helpers.Core;
 using Jellyfin2Samsung.Helpers.Jellyfin;
+using Jellyfin2Samsung.Helpers.Tizen.Certificate;
 using Jellyfin2Samsung.Interfaces;
 using Jellyfin2Samsung.Models;
 using System;
@@ -47,6 +48,13 @@ namespace Jellyfin2Samsung.Services
 
         public async Task<string> EnsureTizenSdbAvailable()
         {
+            var envSdb = ResolveEnvSdbPath();
+            if (!string.IsNullOrEmpty(envSdb))
+            {
+                TizenSdbPath = envSdb;
+                return TizenSdbPath;
+            }
+
             string tizenSdbPath = AppSettings.TizenSdbPath;
             if (!Directory.Exists(tizenSdbPath))
             {
@@ -58,6 +66,12 @@ namespace Jellyfin2Samsung.Services
 
             var existingFile = Directory.GetFiles(tizenSdbPath, PlatformService.GetTizenSdbSearchPattern()).FirstOrDefault();
             var latestVersion = string.Empty;
+
+            if (!string.IsNullOrEmpty(existingFile) && IsOfflineModeEnabled())
+            {
+                TizenSdbPath = existingFile;
+                return TizenSdbPath;
+            }
 
             try
             {
@@ -88,6 +102,41 @@ namespace Jellyfin2Samsung.Services
 
             TizenSdbPath = finalPath;
             return TizenSdbPath;
+        }
+
+        private static string ResolveEnvSdbPath()
+        {
+            var envValue = Environment.GetEnvironmentVariable("JELLYFIN2SAMSUNG_SDB");
+            if (string.IsNullOrWhiteSpace(envValue))
+                return string.Empty;
+
+            if (File.Exists(envValue))
+                return envValue;
+
+            if (!Path.IsPathRooted(envValue))
+            {
+                var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+                var separator = Path.PathSeparator;
+                foreach (var dir in pathEnv.Split(separator, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var candidate = Path.Combine(dir, envValue);
+                    if (File.Exists(candidate))
+                        return candidate;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static bool IsOfflineModeEnabled()
+        {
+            var value = Environment.GetEnvironmentVariable("JELLYFIN2SAMSUNG_SDB_OFFLINE");
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            return value.Equals("1", StringComparison.OrdinalIgnoreCase) ||
+                   value.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                   value.Equals("yes", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool ShouldUpdateBinary(string existingFilePath, string latestVersion)
@@ -427,6 +476,33 @@ namespace Jellyfin2Samsung.Services
 
             string certDuid = _appSettings.ChosenCertificates?.Duid ?? string.Empty;
             string selectedCertificate = _appSettings.Certificate;
+
+            if (string.IsNullOrWhiteSpace(selectedCertificate) ||
+                selectedCertificate == Constants.AppIdentifiers.Jelly2SamsDefault ||
+                _appSettings.ChosenCertificates == null)
+            {
+                var helper = new CertificateHelper();
+                var available = helper.GetAvailableCertificates(AppSettings.CertificatePath)
+                    .Where(c => !string.IsNullOrEmpty(c.File))
+                    .ToList();
+
+                ExistingCertificates? autoSelected = null;
+                if (available.Count > 0)
+                {
+                    autoSelected = available.FirstOrDefault(c => c.Name == Constants.AppIdentifiers.JellyfinAppName)
+                                   ?? available.FirstOrDefault(c => c.Name == "Jelly2Sams")
+                                   ?? available.FirstOrDefault();
+                }
+
+                if (autoSelected != null)
+                {
+                    _appSettings.Certificate = autoSelected.Name;
+                    _appSettings.ChosenCertificates = autoSelected;
+                    _appSettings.Save();
+                    selectedCertificate = autoSelected.Name;
+                    certDuid = autoSelected.Duid ?? string.Empty;
+                }
+            }
 
             // Handle intermediate Tizen versions that don't need Samsung cert
             if (deviceInfo.TizenVersion < certVersion &&

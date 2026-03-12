@@ -1364,6 +1364,9 @@ namespace Jellyfin2Samsung.ViewModels
                 }
 
                 selectedCert ??= AvailableCertificates
+                        .FirstOrDefault(c => c.Name == "Jellyfin");
+
+                selectedCert ??= AvailableCertificates
                         .FirstOrDefault(c => c.Name == "Jelly2Sams");
 
                 selectedCert ??= AvailableCertificates

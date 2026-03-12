@@ -1,4 +1,5 @@
-﻿using Jellyfin2Samsung.Models;
+﻿using Jellyfin2Samsung.Helpers;
+using Jellyfin2Samsung.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -51,26 +52,16 @@ namespace Jellyfin2Samsung.Helpers.Core
             var result = new ProcessResult();
 
             // Always run hidden (no console)
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WorkingDirectory = workingDirectory ?? ""
-            };
+            var startInfo = BuildStartInfo(fileName, arguments, workingDirectory);
 
-            // Build log file path (next to app .exe)
-            string exeDir = AppContext.BaseDirectory;
+            // Build log file path (user-writable)
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-fff");
             string firstTwoArgs = GetFirstArguments(arguments);
             string sanitizedArguments = new(firstTwoArgs.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '-').ToArray());
             if (string.IsNullOrEmpty(sanitizedArguments))
                 sanitizedArguments = "unknown";
 
-            string logFolder = Path.Combine(exeDir, "Logs");
+            string logFolder = AppSettings.LogPath;
             string logFilePath = Path.Combine(logFolder, $"process_{sanitizedArguments}_{timestamp}.log");
 
             try
@@ -102,7 +93,7 @@ namespace Jellyfin2Samsung.Helpers.Core
                 // Always write everything to a log file
                 try
                 {
-                    Directory.CreateDirectory(exeDir);
+                    Directory.CreateDirectory(logFolder);
                     await File.WriteAllTextAsync(logFilePath, result.Output);
                     result.Output += $"\n[Log written to: {logFilePath}]";
                 }
@@ -118,6 +109,54 @@ namespace Jellyfin2Samsung.Helpers.Core
             }
 
             return result;
+        }
+
+        private static ProcessStartInfo BuildStartInfo(string fileName, string arguments, string? workingDirectory)
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WorkingDirectory = workingDirectory ?? ""
+            };
+
+            var nixLd = Environment.GetEnvironmentVariable("JELLYFIN2SAMSUNG_NIX_LD");
+            if (!string.IsNullOrWhiteSpace(nixLd) && ShouldUseNixLd(fileName))
+            {
+                var libPath = Environment.GetEnvironmentVariable("JELLYFIN2SAMSUNG_NIX_LD_LIBRARY_PATH");
+                var quotedFile = Quote(fileName);
+                if (!string.IsNullOrWhiteSpace(libPath))
+                {
+                    startInfo.FileName = nixLd;
+                    startInfo.Arguments = $"--library-path {Quote(libPath)} {quotedFile} {arguments}".Trim();
+                }
+                else
+                {
+                    startInfo.FileName = nixLd;
+                    startInfo.Arguments = $"{quotedFile} {arguments}".Trim();
+                }
+            }
+
+            return startInfo;
+        }
+
+        private static bool ShouldUseNixLd(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return false;
+
+            var normalized = fileName.Replace('\\', '/');
+            return normalized.EndsWith("/sdb", StringComparison.OrdinalIgnoreCase) ||
+                   normalized.Contains("TizenSdb", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string Quote(string value)
+        {
+            return value.Contains(' ') ? $"\"{value}\"" : value;
         }
 
         public async Task MakeExecutableAsync(string filePath)

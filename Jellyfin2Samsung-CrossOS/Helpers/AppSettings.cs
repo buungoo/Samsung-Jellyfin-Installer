@@ -1,6 +1,7 @@
 ﻿using Jellyfin2Samsung.Models;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -8,14 +9,17 @@ namespace Jellyfin2Samsung.Helpers
 {
     public class AppSettings
     {
+        private const string AppFolderName = "Jellyfin2Samsung";
         private const string FileName = "settings.json";
-        public static readonly string FolderPath = AppContext.BaseDirectory;
-        public static readonly string FilePath = Path.Combine(FolderPath, FileName);
-        public static readonly string TizenSdbPath = Path.Combine(FolderPath, "Assets", "TizenSDB");
-        public static readonly string CertificatePath = Path.Combine(FolderPath, "Assets", "Certificate");
-        public static readonly string ProfilePath = Path.Combine(FolderPath, "Assets", "TizenProfile");
-        public static readonly string EsbuildPath = Path.Combine(FolderPath, "Assets", "esbuild");
-        public static readonly string DownloadPath = Path.Combine(FolderPath, "Downloads");
+        public static readonly string BasePath = AppContext.BaseDirectory;
+        public static readonly string DataPath = ResolveDataPath();
+        public static readonly string FilePath = Path.Combine(DataPath, FileName);
+        public static readonly string TizenSdbPath = Path.Combine(DataPath, "TizenSDB");
+        public static readonly string CertificatePath = Path.Combine(DataPath, "Certificate");
+        public static readonly string ProfilePath = Path.Combine(BasePath, "Assets", "TizenProfile");
+        public static readonly string EsbuildPath = Path.Combine(BasePath, "Assets", "esbuild");
+        public static readonly string DownloadPath = Path.Combine(DataPath, "Downloads");
+        public static readonly string LogPath = ResolveLogPath();
 
         private static AppSettings? _instance;
 
@@ -92,6 +96,90 @@ namespace Jellyfin2Samsung.Helpers
         public string ReleaseInfo { get; set; } = "https://raw.githubusercontent.com/jeppevinkel/jellyfin-tizen-builds/refs/heads/master/README.md";
         public string CommunityInfo { get; set; } = "https://raw.githubusercontent.com/PatrickSt1991/tizen-community-packages/refs/heads/main/README.md";
         public AppSettings() { }
+
+        static AppSettings()
+        {
+            EnsureDirectory(DataPath);
+            SeedDirectory(Path.Combine(BasePath, "Assets", "Certificate"), CertificatePath);
+            SeedDirectory(Path.Combine(BasePath, "Assets", "TizenSDB"), TizenSdbPath);
+            EnsureDirectory(LogPath);
+        }
+
+        private static string ResolveDataPath()
+        {
+            var overrideDir = Environment.GetEnvironmentVariable("JELLYFIN2SAMSUNG_DATA_DIR");
+            if (!string.IsNullOrWhiteSpace(overrideDir))
+            {
+                return overrideDir;
+            }
+
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (!string.IsNullOrWhiteSpace(appData))
+            {
+                return Path.Combine(appData, AppFolderName);
+            }
+
+            return Path.Combine(Path.GetTempPath(), AppFolderName);
+        }
+
+        private static string ResolveLogPath()
+        {
+            var overrideDir = Environment.GetEnvironmentVariable("JELLYFIN2SAMSUNG_LOG_DIR");
+            if (!string.IsNullOrWhiteSpace(overrideDir))
+            {
+                return Path.Combine(overrideDir, "Logs");
+            }
+
+            return Path.Combine(DataPath, "Logs");
+        }
+
+        private static void EnsureDirectory(string path)
+        {
+            try
+            {
+                Directory.CreateDirectory(path);
+            }
+            catch
+            {
+                // ignore create errors
+            }
+        }
+
+        private static void SeedDirectory(string source, string destination)
+        {
+            try
+            {
+                if (!Directory.Exists(source))
+                    return;
+
+                if (Directory.Exists(destination) &&
+                    Directory.EnumerateFileSystemEntries(destination).Any())
+                    return;
+
+                CopyDirectory(source, destination);
+            }
+            catch
+            {
+                // ignore seed errors
+            }
+        }
+
+        private static void CopyDirectory(string source, string destination)
+        {
+            Directory.CreateDirectory(destination);
+
+            foreach (var file in Directory.GetFiles(source))
+            {
+                var target = Path.Combine(destination, Path.GetFileName(file));
+                File.Copy(file, target, true);
+            }
+
+            foreach (var dir in Directory.GetDirectories(source))
+            {
+                var target = Path.Combine(destination, Path.GetFileName(dir));
+                CopyDirectory(dir, target);
+            }
+        }
 
         /// <summary>
         /// Gets the full Jellyfin URL including base path for reverse proxy setups.
