@@ -46,7 +46,7 @@ namespace Jellyfin2Samsung.Helpers.Core
             public const string InstallCompleted = "install completed";
             public const string ResignFailed = "Re-sign failed";
             public const string Failed = "failed";
-            public const string NotInstalled = "uninstall failed[132]";
+            public const string NotInstalled = "failed[132]";
         }
 
         /// <summary>
