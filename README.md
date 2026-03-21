@@ -18,9 +18,9 @@
   <br/>
   It handles device detection, certificates, and installation so you don’t have to fight with Tizen Studio or manual sideloading.
   <br/><br/>
-  🌐 Available in: Danish, Dutch, English, French, German, Turkish
+  🌐 Available in: Danish, Dutch, English, French, German, Portuguese, Turkish
   <br/>
-  🇩🇰 🇳🇱 🇬🇧 🇫🇷 🇩🇪 🇹🇷
+  🇩🇰 🇳🇱 🇬🇧 🇫🇷 🇩🇪 🇵🇹 🇹🇷 
 </p>
 
 ---
@@ -31,8 +31,8 @@
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v2.1.0.0](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.1.0.0)                                        | Recommended for most users   |
-| **Beta**   | [v2.2.0.0-beta](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.0-beta)                                            | Includes new features        |
+| **Stable** | [v2.2.0.3](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.3)                                        | Recommended for most users   |
+| **Beta**   | [v2.2.0.4-beta](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.4-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
@@ -116,5 +116,7 @@ Special thanks to:
 - **jeppevinkel** — for providing the Jellyfin Tizen `.wgt` builds  
   https://github.com/jeppevinkel/jellyfin-tizen-builds
 - **@RadicalMuffinMan** — for the Moonfin client and related work  
-  https://github.com/Moonfin-Client/Tizen
+  https://github.com/Moonfin-Client/Smart-TV
+- **@MoazSalem** — for the Litefin client and related work  
+  https://github.com/MoazSalem/litefin/
 
