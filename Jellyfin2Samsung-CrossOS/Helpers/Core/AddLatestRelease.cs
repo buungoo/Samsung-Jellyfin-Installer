@@ -1,6 +1,7 @@
 using Jellyfin2Samsung.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -38,10 +39,18 @@ namespace Jellyfin2Samsung.Helpers.Core
                         return new List<GitHubRelease>();
 
                     releases = releases
-                        .Where(r => r.Assets != null && r.Assets.Any(a =>
-                            !string.IsNullOrWhiteSpace(a.Name) &&
-                            (a.Name.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) ||
-                             a.Name.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase))))
+                        .Select(r =>
+                        {
+                            r.Assets = r.Assets?
+                                .Where(a =>
+                                    !string.IsNullOrWhiteSpace(a.FileName) &&
+                                    (a.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) ||
+                                     a.FileName.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase)))
+                                .ToList() ?? new List<Asset>();
+
+                            return r;
+                        })
+                        .Where(r => r.Assets.Count > 0)
                         .ToList();
 
                     if (releases.Count == 0)
@@ -67,13 +76,15 @@ namespace Jellyfin2Samsung.Helpers.Core
                     if (latest == null)
                         return new List<GitHubRelease>();
 
-                    if (latest.Assets == null || !latest.Assets.Any(a =>
-                        !string.IsNullOrWhiteSpace(a.Name) &&
-                        (a.Name.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) ||
-                         a.Name.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase))))
-                    {
+                    latest.Assets = latest.Assets?
+                        .Where(a =>
+                            !string.IsNullOrWhiteSpace(a.FileName) &&
+                            (a.FileName.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) ||
+                             a.FileName.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase)))
+                        .ToList() ?? new List<Asset>();
+
+                    if (latest.Assets.Count == 0)
                         return new List<GitHubRelease>();
-                    }
 
                     latest.Name = string.IsNullOrWhiteSpace(displayName)
                         ? $"{prefix}{latest.Name}"
