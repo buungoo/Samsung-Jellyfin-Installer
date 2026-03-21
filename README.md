@@ -116,5 +116,7 @@ Special thanks to:
 - **jeppevinkel** — for providing the Jellyfin Tizen `.wgt` builds  
   https://github.com/jeppevinkel/jellyfin-tizen-builds
 - **@RadicalMuffinMan** — for the Moonfin client and related work  
-  https://github.com/Moonfin-Client/Tizen
+  https://github.com/Moonfin-Client/Smart-TV
+- **@MoazSalem** — for the Litefin client and related work  
+  https://github.com/MoazSalem/litefin/
 
