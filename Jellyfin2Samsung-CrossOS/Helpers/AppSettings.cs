@@ -72,6 +72,7 @@ namespace Jellyfin2Samsung.Helpers
         public bool PatchYoutubePlugin { get; set; } = false;
         public string CustomCss { get; set; } = "";
         public bool DarkMode { get; set; } = false;
+        public string GitHubToken { get; set; } = "";
         public string LocalYoutubeServer { get; set; } = string.Empty;
 
         // ----- Updater settings -----
