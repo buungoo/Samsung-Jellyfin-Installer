@@ -1,6 +1,7 @@
 using Jellyfin2Samsung.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -36,6 +37,16 @@ namespace Jellyfin2Samsung.Helpers.Core
                     if (releases == null || releases.Count == 0)
                         return new List<GitHubRelease>();
 
+                    releases = releases
+                        .Where(r => r.Assets != null && r.Assets.Any(a =>
+                            !string.IsNullOrWhiteSpace(a.Name) &&
+                            (a.Name.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) ||
+                             a.Name.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase))))
+                        .ToList();
+
+                    if (releases.Count == 0)
+                        return new List<GitHubRelease>();
+
                     var result = releases.Count > take ? releases.GetRange(0, take) : releases;
 
                     foreach (var r in result)
@@ -56,6 +67,14 @@ namespace Jellyfin2Samsung.Helpers.Core
                     if (latest == null)
                         return new List<GitHubRelease>();
 
+                    if (latest.Assets == null || !latest.Assets.Any(a =>
+                        !string.IsNullOrWhiteSpace(a.Name) &&
+                        (a.Name.EndsWith(".wgt", StringComparison.OrdinalIgnoreCase) ||
+                         a.Name.EndsWith(".tpk", StringComparison.OrdinalIgnoreCase))))
+                    {
+                        return new List<GitHubRelease>();
+                    }
+
                     latest.Name = string.IsNullOrWhiteSpace(displayName)
                         ? $"{prefix}{latest.Name}"
                         : displayName;
@@ -69,6 +88,5 @@ namespace Jellyfin2Samsung.Helpers.Core
                 return new List<GitHubRelease>();
             }
         }
-
     }
 }
