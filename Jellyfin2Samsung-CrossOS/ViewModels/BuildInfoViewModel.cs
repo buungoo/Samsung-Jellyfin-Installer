@@ -135,7 +135,8 @@ namespace Jellyfin2Samsung.ViewModels
             // Exceptions inside JellyfinVersions that should NOT use Jellyfin image
             var jellyfinOverrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Moonfin", Constants.PreviewImages.Moonfin }
+                { "Moonfin", Constants.PreviewImages.Moonfin },
+                { "Moonlite", Constants.PreviewImages.Moonlite },
             };
 
             var jellyfinBitmap = await LoadBitmapAsync(Constants.PreviewImages.Jellyfin);
