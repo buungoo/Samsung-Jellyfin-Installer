@@ -31,6 +31,7 @@ namespace Jellyfin2Samsung.Helpers.Core
             public const string ClubInfoBoard = "https://iili.io/fsviHQV.png";
             public const string Doom = "https://iili.io/fyofVqu.png";
             public const string TTD = "https://iili.io/qFBP2vn.png";
+            public const string Litefin = "https://iili.io/qerI0la.png";
         }
 
         /// <summary>
@@ -46,7 +47,7 @@ namespace Jellyfin2Samsung.Helpers.Core
             public const string InstallCompleted = "install completed";
             public const string ResignFailed = "Re-sign failed";
             public const string Failed = "failed";
-            public const string NotInstalled = "uninstall failed[132]";
+            public const string NotInstalled = "failed[132]";
         }
 
         /// <summary>
