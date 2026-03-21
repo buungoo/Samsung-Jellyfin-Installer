@@ -173,7 +173,10 @@ namespace Jellyfin2Samsung.Services
             {
                 throw new TimeoutException(
                     "GitHub rate limit reached while checking for Tizen SDB.\n\n" +
-                    "Please try again later.",
+                    "To avoid this, set a GitHub Personal Access Token (PAT) in settings,\n" +
+                    "or set the GITHUB_TOKEN environment variable,\n" +
+                    "or install the GitHub CLI (gh) and run 'gh auth login'.\n\n" +
+                    "Alternatively, please try again later.",
                     ex
                 );
             }
