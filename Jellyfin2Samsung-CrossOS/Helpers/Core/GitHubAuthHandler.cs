@@ -42,12 +42,18 @@ namespace Jellyfin2Samsung.Helpers.Core
         {
             // 1. Explicit setting
             if (!string.IsNullOrWhiteSpace(settings.GitHubToken))
+            {
+                Trace.TraceInformation("[GitHubAuth] Using token from app settings");
                 return settings.GitHubToken.Trim();
+            }
 
             // 2. Environment variable
             var envToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
             if (!string.IsNullOrWhiteSpace(envToken))
+            {
+                Trace.TraceInformation("[GitHubAuth] Using token from GITHUB_TOKEN environment variable");
                 return envToken.Trim();
+            }
 
             // 3. GitHub CLI (gh auth token)
             try
@@ -69,7 +75,10 @@ namespace Jellyfin2Samsung.Helpers.Core
                     process.WaitForExit(5000);
 
                     if (process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
+                    {
+                        Trace.TraceInformation("[GitHubAuth] Using token from GitHub CLI (gh auth token)");
                         return output;
+                    }
                 }
             }
             catch
@@ -78,6 +87,7 @@ namespace Jellyfin2Samsung.Helpers.Core
             }
 
             // 4. No token available — unauthenticated requests
+            Trace.TraceInformation("[GitHubAuth] No token found — using unauthenticated requests");
             return null;
         }
     }
