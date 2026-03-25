@@ -678,15 +678,7 @@ function fetchTmdbTrailers(tmdbId, lang, apiKey, cb) {
 }
 
 function searchDdg(title, year, lang, cb) {
-    var langMap = {
-        de:'Deutsch German', fr:'French Français', es:'Spanish Español', it:'Italian Italiano',
-        nl:'Dutch Nederlands', pt:'Portuguese Português', ru:'Russian Русский', ja:'Japanese 日本語',
-        ko:'Korean 한국어', zh:'Chinese 中文', pl:'Polish Polski', sv:'Swedish Svenska',
-        da:'Danish Dansk', no:'Norwegian Norsk', fi:'Finnish Suomi', cs:'Czech Český',
-        hu:'Hungarian Magyar', tr:'Turkish Türkçe', ar:'Arabic العربية', he:'Hebrew עברית',
-        ro:'Romanian Română', th:'Thai ไทย', uk:'Ukrainian Українська', vi:'Vietnamese Tiếng Việt',
-        en:'English'
-    };
+    var langMap = __LANG_MAP__;
     var langName = langMap[lang] || '';
     var langKeywords = langName.toLowerCase().split(' ');
     var q = title + (year ? ' ' + year : '') + ' Trailer ' + langName + ' site:youtube.com';
@@ -880,7 +872,8 @@ function handler(req, res) {
 var server = http.createServer(handler);
 server.listen(PORT, LISTEN_HOST, function() { log('SERVER LISTENING ' + LISTEN_HOST + ':' + PORT); });
 """.Replace("var PORT = 8123", $"var PORT = {servicePort}")
-   .Replace("'origin': 'http://localhost:8123'", $"'origin': 'http://localhost:{servicePort}'");
+   .Replace("'origin': 'http://localhost:8123'", $"'origin': 'http://localhost:{servicePort}'")
+   .Replace("__LANG_MAP__", TrailerLanguageMap.JsObject);
             await File.WriteAllTextAsync(serviceJsPath, serviceJsContent, utf8NoBom);
         }
 
