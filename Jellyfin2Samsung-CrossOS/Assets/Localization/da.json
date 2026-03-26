@@ -113,6 +113,8 @@
   "lblServerUrl": "Server-URL",
   "lblConnectionStatus": "Server Status",
   "lblAdvancedSettings": "Avancerede indstillinger",
+  "lblGitHubToken": "GitHub Token (PAT)",
+  "lblGitHubTokenHint": "Optional. Prevents API rate limiting when fetching releases. Create one at GitHub > Settings > Developer settings > Personal access tokens.",
   "lblTabCss": "CSS Stil",
   "lblCssSettings": "Brugerdefinerede CSS-indstillinger",
   "lblCustomCss": "Brugerdefineret CSS-kode",
