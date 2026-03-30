@@ -113,6 +113,8 @@
   "lblServerUrl": "Sunucu URL",
   "lblConnectionStatus": "Sunucu Durumu",
   "lblAdvancedSettings": "Gelişmiş Ayarlar",
+  "lblGitHubToken": "GitHub Token (PAT)",
+  "lblGitHubTokenHint": "Optional. Prevents API rate limiting when fetching releases. Create one at GitHub > Settings > Developer settings > Personal access tokens.",
   "lblTabCss": "CSS Stili",
   "lblCssSettings": "Özel CSS Ayarları",
   "lblCustomCss": "Özel CSS Kodu",
