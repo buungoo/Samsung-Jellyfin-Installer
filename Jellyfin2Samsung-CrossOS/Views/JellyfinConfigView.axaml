@@ -542,7 +542,7 @@
 										</Button>
 										<ToggleSwitch Grid.Column="1"
 													  IsChecked="{Binding EnableDevLogs, Mode=TwoWay}"
-													  IsEnabled="{Binding IsAuthenticated}"/>
+													  IsEnabled="{Binding ServerIpSet}"/>
 									</Grid>
 								</Grid>
 
@@ -554,7 +554,7 @@
 											   VerticalAlignment="Center"/>
 									<ToggleSwitch Grid.Column="1"
 												  IsChecked="{Binding UseServerScripts}"
-												  IsEnabled="{Binding IsAuthenticated}"/>
+												  IsEnabled="{Binding ServerIpSet}"/>
 								</Grid>
 
 								<!-- Fix YouTube 153 -->
@@ -564,7 +564,7 @@
 											   Classes="label"
 											   VerticalAlignment="Center"/>
 									<ToggleSwitch Grid.Column="1"
-											IsEnabled="{Binding IsAuthenticated}"
+											IsEnabled="{Binding ServerIpSet}"
 											IsChecked="{Binding PatchYoutubePlugin}"/>
 								</Grid>
 
