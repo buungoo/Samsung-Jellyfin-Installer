@@ -35,6 +35,7 @@ namespace Jellyfin2Samsung.Helpers
         public string Certificate { get; set; } = "Jelly2Sams";
         public bool DeletePreviousInstall { get; set; } = false;
         public string UserCustomIP { get; set; } = "";
+        public string SavedNetworkInterfaceName { get; set; } = "";
         public bool ForceSamsungLogin { get; set; } = false;
         public bool RTLReading { get; set; } = false;
         public string JellyfinIP { get; set; } = "";

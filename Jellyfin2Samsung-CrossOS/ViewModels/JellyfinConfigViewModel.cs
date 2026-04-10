@@ -1343,10 +1343,17 @@ namespace Jellyfin2Samsung.ViewModels
                     foreach (var ni in interfaces)
                         NetworkInterfaces.Add(ni);
 
-                    // Restore previous selection if possible
+                    // Restore previous selection: match by name first (stable across DHCP changes),
+                    // fall back to IP match, then default to first interface
+                    var savedName = AppSettings.Default.SavedNetworkInterfaceName;
+                    var savedIp = AppSettings.Default.LocalIp;
                     SelectedNetworkInterface =
-                        NetworkInterfaces.FirstOrDefault(i =>
-                            i.IpAddress == AppSettings.Default.LocalIp)
+                        (!string.IsNullOrEmpty(savedName)
+                            ? NetworkInterfaces.FirstOrDefault(i => i.Name == savedName)
+                            : null)
+                        ?? (!string.IsNullOrEmpty(savedIp)
+                            ? NetworkInterfaces.FirstOrDefault(i => i.IpAddress == savedIp)
+                            : null)
                         ?? NetworkInterfaces.FirstOrDefault();
                 });
             }
@@ -1410,6 +1417,7 @@ namespace Jellyfin2Samsung.ViewModels
 
             LocalIP = value.IpAddress;
             AppSettings.Default.LocalIp = value.IpAddress;
+            AppSettings.Default.SavedNetworkInterfaceName = value.Name;
             AppSettings.Default.Save();
         }
 
