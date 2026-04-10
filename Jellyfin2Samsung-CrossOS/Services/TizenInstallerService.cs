@@ -383,8 +383,7 @@ namespace Jellyfin2Samsung.Services
             if (string.IsNullOrEmpty(tvDuid))
                 return null;
 
-            string tizenOs = await FetchTizenOsAsync(tvIpAddress);
-            string sdkToolPath = await FetchSdkPathAsync(tvIpAddress);
+            var (tizenOs, sdkToolPath) = await FetchCapabilitiesAsync(tvIpAddress);
 
             if (string.IsNullOrEmpty(tizenOs))
                 tizenOs = Constants.Defaults.TizenOsVersion;
@@ -658,18 +657,17 @@ namespace Jellyfin2Samsung.Services
             return output.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? string.Empty;
         }
 
-        private async Task<string> FetchTizenOsAsync(string tvIpAddress)
+        private async Task<(string tizenOs, string sdkToolPath)> FetchCapabilitiesAsync(string tvIpAddress)
         {
             var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"capability {tvIpAddress}");
-            var match = RegexPatterns.TizenCapability.PlatformVersion.Match(output.Output);
-            return match.Success ? match.Groups[1].Value.Trim() : string.Empty;
-        }
 
-        private async Task<string> FetchSdkPathAsync(string tvIpAddress)
-        {
-            var output = await _processHelper.RunCommandAsync(TizenSdbPath!, $"capability {tvIpAddress}");
-            var match = RegexPatterns.TizenCapability.SdkToolPath.Match(output.Output);
-            return match.Success ? match.Groups[1].Value.Trim() : Constants.Defaults.SdkToolPath;
+            var versionMatch = RegexPatterns.TizenCapability.PlatformVersion.Match(output.Output);
+            string tizenOs = versionMatch.Success ? versionMatch.Groups[1].Value.Trim() : string.Empty;
+
+            var pathMatch = RegexPatterns.TizenCapability.SdkToolPath.Match(output.Output);
+            string sdkToolPath = pathMatch.Success ? pathMatch.Groups[1].Value.Trim() : Constants.Defaults.SdkToolPath;
+
+            return (tizenOs, sdkToolPath);
         }
 
         private async Task<string> GetTvDuidAsync(string tvIpAddress)
