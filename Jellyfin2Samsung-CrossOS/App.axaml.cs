@@ -75,17 +75,20 @@ namespace Jellyfin2Samsung
             services.AddSingleton<IUpdaterService, UpdaterService>();
             services.AddSingleton<IUpdateDialogService, UpdateDialogService>();
 
-            // HttpClient (configured ONCE)
+            // HttpClient (configured ONCE, with GitHub auth if available)
             services.AddSingleton(sp =>
             {
-                var client = new HttpClient
+                var appSettings = sp.GetRequiredService<AppSettings>();
+                var token = Helpers.Core.GitHubAuthHandler.ResolveToken(appSettings);
+                var handler = new Helpers.Core.GitHubAuthHandler(token);
+
+                var client = new HttpClient(handler)
                 {
                     Timeout = TimeSpan.FromSeconds(30)
                 };
 
                 client.DefaultRequestHeaders.UserAgent.ParseAdd("SamsungJellyfinInstaller/1.1");
                 client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
-
 
                 return client;
             });

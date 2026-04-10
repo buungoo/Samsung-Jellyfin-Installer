@@ -32,7 +32,7 @@
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
 | **Stable** | [v2.2.0.4](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.4)                                        | Recommended for most users   |
-| **Beta**   | [N/A](#)                                            | Includes new features        |
+| **Beta**   | [v2.2.0.6-beta](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.6-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
@@ -88,11 +88,24 @@ https://github.com/PatrickSt1991/tizen-community-packages
 
 ## 🛠️ Support & Contributing
 
-- Bug reports & feature requests: [Issues](../../issues)
-- Ideas & questions: [Discussions](../../discussions)
-- Chat: https://discord.gg/7mga3zh8Cv
+Contributions of all kinds are welcome — whether it’s bug reports, feature requests, code, documentation, or translations.
 
-Contributions are welcome — issues, PRs, translations, or documentation.
+- Bug reports & feature requests: [Issues](../../issues)
+- Ideas, feedback & questions: [Discussions](../../discussions)
+- Community chat: [Discord](https://discord.gg/7mga3zh8Cv)
+
+## 🌍 Translations
+
+Want to help translate **Jellyfin2Samsung**? Community translations are always appreciated.
+
+You can contribute here:
+
+- [Transifex](https://app.transifex.com/madebypatrick/jellyfin2samsung)
+- [Crowdin](https://crowdin.com/project/jellyfin2samsung)
+
+You can help by translating missing strings, improving existing translations, or reviewing your language.
+
+Translation updates are synced back into this repository automatically.
 
 ---
 

@@ -1,0 +1,3 @@
+files:
+  - source: /Jellyfin2Samsung-CrossOS/Assets/Localization/en.json
+    translation: /Jellyfin2Samsung-CrossOS/Assets/Localization/%two_letters_code%.json

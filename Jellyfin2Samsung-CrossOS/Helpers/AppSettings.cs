@@ -35,6 +35,7 @@ namespace Jellyfin2Samsung.Helpers
         public string Certificate { get; set; } = "Jelly2Sams";
         public bool DeletePreviousInstall { get; set; } = false;
         public string UserCustomIP { get; set; } = "";
+        public string SavedNetworkInterfaceName { get; set; } = "";
         public bool ForceSamsungLogin { get; set; } = false;
         public bool RTLReading { get; set; } = false;
         public string JellyfinIP { get; set; } = "";
@@ -72,6 +73,7 @@ namespace Jellyfin2Samsung.Helpers
         public bool PatchYoutubePlugin { get; set; } = false;
         public string CustomCss { get; set; } = "";
         public bool DarkMode { get; set; } = false;
+        public string GitHubToken { get; set; } = "";
         public string LocalYoutubeServer { get; set; } = string.Empty;
 
         // ----- Updater settings -----
@@ -82,7 +84,7 @@ namespace Jellyfin2Samsung.Helpers
         // ----- Application-scoped settings (readonly at runtime) -----
         public string ReleasesUrl { get; set; } = "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases";
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
-        public string AppVersion { get; set; } = "v2.2.0.4";
+        public string AppVersion { get; set; } = "v2.2.0.6";
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         public string JellyfinAvRelease { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases";
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";

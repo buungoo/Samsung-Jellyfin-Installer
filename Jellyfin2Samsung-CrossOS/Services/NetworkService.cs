@@ -69,18 +69,20 @@ namespace Jellyfin2Samsung.Services
         public async Task<IEnumerable<NetworkDevice>> FindTizenTvsAsync(CancellationToken cancellationToken = default, bool virtualScan = false)
         {
             var foundDevices = new List<NetworkDevice>();
-            var localIps = GetRelevantLocalIPs(virtualScan);
+            var localInfos = GetLocalNetworkInfos(virtualScan);
             var lockObject = new object();
 
-            // Group by network prefix to avoid scanning the same network multiple times
-            var uniqueNetworks = localIps
-                .Select(ip => GetNetworkPrefix(ip))
-                .Distinct()
+            // Deduplicate by actual network address so overlapping interfaces don't double-scan
+            var uniqueNetworks = localInfos
+                .Select(info => (
+                    Network: GetNetworkAddress(info.Address, info.Mask),
+                    Broadcast: GetBroadcastAddress(info.Address, info.Mask)
+                ))
+                .DistinctBy(r => r.Network.ToString())
                 .ToList();
 
-            await Task.WhenAll(uniqueNetworks.SelectMany(networkPrefix =>
-                Enumerable.Range(1, 254)
-                    .Select(i => $"{networkPrefix}.{i}")
+            await Task.WhenAll(uniqueNetworks.SelectMany(range =>
+                GetHostAddresses(range.Network, range.Broadcast)
                     .Select(async ip =>
                     {
                         try
@@ -168,10 +170,103 @@ namespace Jellyfin2Samsung.Services
             }
         }
 
-        private string GetNetworkPrefix(IPAddress ip)
+        // Returns all local interface IPs with their actual subnet masks.
+        // Falls back to /24 for the user-supplied custom IP since its mask can't be discovered.
+        private List<(IPAddress Address, IPAddress Mask)> GetLocalNetworkInfos(bool virtualScan = false)
+        {
+            var infos = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(ni => ni.OperationalStatus == OperationalStatus.Up)
+                .Where(ni =>
+                    virtualScan ||
+                    ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet ||
+                    ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211)
+                .SelectMany(ni => ni.GetIPProperties().UnicastAddresses)
+                .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork)
+                .Where(ua => !IPAddress.IsLoopback(ua.Address))
+                .Where(ua => ua.IPv4Mask != null && !ua.IPv4Mask.Equals(IPAddress.Any))
+                .Select(ua => (Address: ua.Address, Mask: ua.IPv4Mask))
+                .ToList();
+
+            if (!string.IsNullOrEmpty(AppSettings.Default.UserCustomIP) &&
+                IPAddress.TryParse(AppSettings.Default.UserCustomIP, out var customIp))
+            {
+                // Reuse the mask from a local interface whose network contains the custom IP;
+                // otherwise fall back to /24 so we still scan the right /24 segment.
+                var fallback = IPAddress.Parse("255.255.255.0");
+                var matchingMask = infos
+                    .FirstOrDefault(i =>
+                        GetNetworkAddress(i.Address, i.Mask).Equals(GetNetworkAddress(customIp, i.Mask)))
+                    .Mask ?? fallback;
+                infos.Add((customIp, matchingMask));
+            }
+
+            return infos;
+        }
+
+        private static IPAddress GetNetworkAddress(IPAddress ip, IPAddress mask)
+        {
+            var ipBytes = ip.GetAddressBytes();
+            var maskBytes = mask.GetAddressBytes();
+            var result = new byte[4];
+            for (int i = 0; i < 4; i++)
+                result[i] = (byte)(ipBytes[i] & maskBytes[i]);
+            return new IPAddress(result);
+        }
+
+        private static IPAddress GetBroadcastAddress(IPAddress ip, IPAddress mask)
+        {
+            var ipBytes = ip.GetAddressBytes();
+            var maskBytes = mask.GetAddressBytes();
+            var result = new byte[4];
+            for (int i = 0; i < 4; i++)
+                result[i] = (byte)(ipBytes[i] | (byte)~maskBytes[i]);
+            return new IPAddress(result);
+        }
+
+        // Enumerates usable host addresses for a subnet (excludes network and broadcast addresses).
+        // Caps at 1022 hosts (/22) to keep scans practical; larger subnets are narrowed to the
+        // /24 block that contains the network address.
+        private static IEnumerable<string> GetHostAddresses(IPAddress networkAddress, IPAddress broadcastAddress)
+        {
+            uint netInt = IpToUInt(networkAddress);
+            uint broadInt = IpToUInt(broadcastAddress);
+            uint hostCount = broadInt - netInt - 1;
+
+            if (hostCount > 1022)
+            {
+                // Narrow to /24 to avoid scanning thousands of addresses
+                var bytes = networkAddress.GetAddressBytes();
+                netInt = IpToUInt(new IPAddress(new byte[] { bytes[0], bytes[1], bytes[2], 0 }));
+                broadInt = netInt + 255;
+            }
+
+            for (uint i = netInt + 1; i < broadInt; i++)
+                yield return UIntToIp(i);
+        }
+
+        private static uint IpToUInt(IPAddress ip)
         {
             var bytes = ip.GetAddressBytes();
-            return $"{bytes[0]}.{bytes[1]}.{bytes[2]}";
+            if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
+            return BitConverter.ToUInt32(bytes, 0);
+        }
+
+        private static string UIntToIp(uint value)
+        {
+            var bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
+            return $"{bytes[0]}.{bytes[1]}.{bytes[2]}.{bytes[3]}";
+        }
+
+        // Looks up the subnet mask assigned to a local interface IP.
+        private static IPAddress? GetMaskForLocalIp(IPAddress target)
+        {
+            return NetworkInterface.GetAllNetworkInterfaces()
+                .Where(ni => ni.OperationalStatus == OperationalStatus.Up)
+                .SelectMany(ni => ni.GetIPProperties().UnicastAddresses)
+                .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork)
+                .FirstOrDefault(ua => ua.Address.Equals(target))
+                ?.IPv4Mask;
         }
 
         public async Task<string?> GetManufacturerFromIp(string ipAddress)
@@ -248,17 +343,22 @@ namespace Jellyfin2Samsung.Services
         }
         public bool IsDifferentSubnet(string ip1, string ip2)
         {
-            if (!IPAddress.TryParse(ip1, out var a) ||
-                !IPAddress.TryParse(ip2, out var b))
-                return false; // or true, depending on how strict you want to be
+            if (!IPAddress.TryParse(ip1, out var a) || !IPAddress.TryParse(ip2, out var b))
+                return false;
+
+            // Use the actual mask from the local interface; fall back to /24 if not found
+            var mask = GetMaskForLocalIp(a) ?? IPAddress.Parse("255.255.255.0");
 
             var aBytes = a.GetAddressBytes();
             var bBytes = b.GetAddressBytes();
+            var maskBytes = mask.GetAddressBytes();
 
-            // /24 subnet → first 3 octets must match
-            return aBytes[0] != bBytes[0]
-                || aBytes[1] != bBytes[1]
-                || aBytes[2] != bBytes[2];
+            for (int i = 0; i < 4; i++)
+            {
+                if ((aBytes[i] & maskBytes[i]) != (bBytes[i] & maskBytes[i]))
+                    return true;
+            }
+            return false;
         }
         public Task<IReadOnlyList<NetworkInterfaceOption>> GetNetworkInterfaceOptionsAsync()
         {

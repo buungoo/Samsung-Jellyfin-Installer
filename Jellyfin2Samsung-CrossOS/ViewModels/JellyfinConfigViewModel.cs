@@ -181,6 +181,12 @@ namespace Jellyfin2Samsung.ViewModels
         private bool darkMode;
 
         [ObservableProperty]
+        private string gitHubToken = string.Empty;
+
+        [ObservableProperty]
+        private bool showGitHubToken = false;
+
+        [ObservableProperty]
         private NetworkInterfaceOption? selectedNetworkInterface;
 
         public ObservableCollection<LanguageOption> AvailableLanguages { get; }
@@ -307,6 +313,9 @@ namespace Jellyfin2Samsung.ViewModels
         public string LblRTL => _localizationService.GetString("lblRTL");
         public string LblKeepWGTFile => _localizationService.GetString("lblKeepWGTFile");
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
+        public string LblGitHubToken => _localizationService.GetString("lblGitHubToken");
+        public string LblGitHubTokenHint => _localizationService.GetString("lblGitHubTokenHint");
+        public char GitHubTokenPasswordChar => ShowGitHubToken ? '\0' : '*';
 
         public bool CanLogin => ServerValidated &&
                                 !string.IsNullOrWhiteSpace(JellyfinUsername) &&
@@ -435,6 +444,8 @@ namespace Jellyfin2Samsung.ViewModels
             OnPropertyChanged(nameof(LblRTL));
             OnPropertyChanged(nameof(LblKeepWGTFile));
             OnPropertyChanged(nameof(LblSettingsHeader));
+            OnPropertyChanged(nameof(LblGitHubToken));
+            OnPropertyChanged(nameof(LblGitHubTokenHint));
         }
 
         partial void OnAudioLanguagePreferenceChanged(string? value)
@@ -1316,6 +1327,7 @@ namespace Jellyfin2Samsung.ViewModels
             OpenAfterInstall = AppSettings.Default.OpenAfterInstall;
             KeepWGTFile = AppSettings.Default.KeepWGTFile;
             DarkMode = AppSettings.Default.DarkMode;
+            GitHubToken = AppSettings.Default.GitHubToken ?? string.Empty;
         }
 
         private async Task LoadNetworkInterfacesAsync()
@@ -1331,10 +1343,17 @@ namespace Jellyfin2Samsung.ViewModels
                     foreach (var ni in interfaces)
                         NetworkInterfaces.Add(ni);
 
-                    // Restore previous selection if possible
+                    // Restore previous selection: match by name first (stable across DHCP changes),
+                    // fall back to IP match, then default to first interface
+                    var savedName = AppSettings.Default.SavedNetworkInterfaceName;
+                    var savedIp = AppSettings.Default.LocalIp;
                     SelectedNetworkInterface =
-                        NetworkInterfaces.FirstOrDefault(i =>
-                            i.IpAddress == AppSettings.Default.LocalIp)
+                        (!string.IsNullOrEmpty(savedName)
+                            ? NetworkInterfaces.FirstOrDefault(i => i.Name == savedName)
+                            : null)
+                        ?? (!string.IsNullOrEmpty(savedIp)
+                            ? NetworkInterfaces.FirstOrDefault(i => i.IpAddress == savedIp)
+                            : null)
                         ?? NetworkInterfaces.FirstOrDefault();
                 });
             }
@@ -1398,6 +1417,7 @@ namespace Jellyfin2Samsung.ViewModels
 
             LocalIP = value.IpAddress;
             AppSettings.Default.LocalIp = value.IpAddress;
+            AppSettings.Default.SavedNetworkInterfaceName = value.Name;
             AppSettings.Default.Save();
         }
 
@@ -1479,6 +1499,17 @@ namespace Jellyfin2Samsung.ViewModels
         partial void OnDarkModeChanged(bool value)
         {
             _themeService.SetTheme(value);
+        }
+
+        partial void OnGitHubTokenChanged(string value)
+        {
+            AppSettings.Default.GitHubToken = value;
+            AppSettings.Default.Save();
+        }
+
+        partial void OnShowGitHubTokenChanged(bool value)
+        {
+            OnPropertyChanged(nameof(GitHubTokenPasswordChar));
         }
 
         // ========== End Main Settings Methods ==========
