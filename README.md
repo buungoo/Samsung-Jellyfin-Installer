@@ -56,6 +56,8 @@ That’s it. No manual certificate handling required in most cases.
 🎥 Full walkthrough:  
 https://www.youtube.com/watch?v=_8mSV5pW-ic
 
+**NixOS:** Clone the [`Samsung2Jellyfin` branch](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer.git) and run `nix-shell` — the shell environment will automatically build and launch the tool.
+
 ---
 
 ## 📚 Documentation
