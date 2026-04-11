@@ -31,8 +31,8 @@
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v2.2.0.4](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.4)                                        | Recommended for most users   |
-| **Beta**   | [v2.2.0.6-beta](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.6-beta)                                            | Includes new features        |
+| **Stable** | [v2.2.0.6](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.6)                                        | Recommended for most users   |
+| **Beta**   | [v2.2.0.7-beta](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.7-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
@@ -55,6 +55,8 @@ That’s it. No manual certificate handling required in most cases.
 
 🎥 Full walkthrough:  
 https://www.youtube.com/watch?v=_8mSV5pW-ic
+
+**NixOS:** Clone the [`Samsung2Jellyfin` branch](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer.git) and run `nix-shell` — the shell environment will automatically build and launch the tool.
 
 ---
 
