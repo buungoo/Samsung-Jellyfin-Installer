@@ -149,5 +149,6 @@
   "UpdateError": "Update fehlgeschlagen",
   "UpdateCheckFailed": "Update-Überprüfung fehlgeschlagen",
   "IncompatiblePackage": "Paketversion ist nicht mit dem Gerät kompatibel.",
-  "IncompatiblePackageDetailed": "Paketversion {0} nicht kompatibel mit Tizen OS {1}"
+  "IncompatiblePackageDetailed": "Paketversion {0} nicht kompatibel mit Tizen OS {1}",
+  "lblMdnsWarning": "Warnung: Du verwendest einen mDNS-Hostnamen (.local). Samsung TVs k\u00f6nnen .local-Adressen nicht zuverl\u00e4ssig aufl\u00f6sen, was dazu f\u00fchren kann, dass der Server auf deinem TV als \"undefined\" angezeigt wird \u2014 besonders nach Netzwerkunterbrechungen. Verwende stattdessen eine direkte IP-Adresse (z.B. 192.168.1.100) f\u00fcr eine stabile Verbindung."
 }
