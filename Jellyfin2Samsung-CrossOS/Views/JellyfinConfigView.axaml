@@ -142,6 +142,41 @@
 											  HorizontalAlignment="Stretch"/>
 								</Grid>
 
+								<!-- GitHub Token (PAT) -->
+								<Grid ColumnDefinitions="180,*" ColumnSpacing="12">
+									<TextBlock Grid.Column="0"
+											   Text="{Binding LblGitHubToken}"
+											   Classes="label"
+											   VerticalAlignment="Center"/>
+									<Grid Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+										<TextBox Grid.Column="0"
+												 Text="{Binding GitHubToken}"
+												 PasswordChar="{Binding GitHubTokenPasswordChar}"
+												 Watermark="ghp_xxxxxxxxxxxxxxxxxxxx"
+												 Classes="clean"
+												 HorizontalAlignment="Stretch"/>
+										<ToggleButton Grid.Column="1"
+													  IsChecked="{Binding ShowGitHubToken}"
+													  VerticalAlignment="Center"
+													  Width="36"
+													  Height="36"
+													  CornerRadius="4"
+													  Padding="0"
+													  ToolTip.Tip="Show/Hide token">
+											<Panel>
+												<fa:SymbolIcon Symbol="View" Width="16" Height="16" IsVisible="{Binding !ShowGitHubToken}"/>
+												<fa:SymbolIcon Symbol="Cancel" Width="16" Height="16" IsVisible="{Binding ShowGitHubToken}"/>
+											</Panel>
+										</ToggleButton>
+									</Grid>
+								</Grid>
+								<TextBlock Text="{Binding LblGitHubTokenHint}"
+										   FontSize="11"
+										   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+										   FontStyle="Italic"
+										   TextWrapping="Wrap"
+										   Margin="180,0,0,0"/>
+
 							</StackPanel>
 
 							<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
@@ -373,6 +408,18 @@
 									</StackPanel>
 								</Grid>
 
+								<!-- mDNS (.local) Warning -->
+								<Border IsVisible="{Binding ShowMdnsWarning}"
+										Background="#FFF3CD"
+										CornerRadius="4"
+										Padding="10,8"
+										Margin="0,4,0,0">
+									<TextBlock Text="{Binding LblMdnsWarning}"
+											   Foreground="#856404"
+											   FontSize="12"
+											   TextWrapping="Wrap"/>
+								</Border>
+
 							</StackPanel>
 
 							<Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4"/>
@@ -507,7 +554,7 @@
 										</Button>
 										<ToggleSwitch Grid.Column="1"
 													  IsChecked="{Binding EnableDevLogs, Mode=TwoWay}"
-													  IsEnabled="{Binding IsAuthenticated}"/>
+													  IsEnabled="{Binding ServerIpSet}"/>
 									</Grid>
 								</Grid>
 
@@ -519,7 +566,7 @@
 											   VerticalAlignment="Center"/>
 									<ToggleSwitch Grid.Column="1"
 												  IsChecked="{Binding UseServerScripts}"
-												  IsEnabled="{Binding IsAuthenticated}"/>
+												  IsEnabled="{Binding ServerIpSet}"/>
 								</Grid>
 
 								<!-- Fix YouTube 153 -->
@@ -529,7 +576,7 @@
 											   Classes="label"
 											   VerticalAlignment="Center"/>
 									<ToggleSwitch Grid.Column="1"
-											IsEnabled="{Binding IsAuthenticated}"
+											IsEnabled="{Binding ServerIpSet}"
 											IsChecked="{Binding PatchYoutubePlugin}"/>
 								</Grid>
 

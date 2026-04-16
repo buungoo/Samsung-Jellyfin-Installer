@@ -481,8 +481,7 @@ namespace Jellyfin2Samsung.ViewModels
                         if (!AppSettings.Default.KeepWGTFile)
                             _packageHelper.CleanupDownloadedPackage(customPath);
 
-                    AppSettings.Default.CustomWgtPath = string.Empty;
-                    AppSettings.Default.Save();
+                    CustomWgtPath = string.Empty;
                 }
                 else
                 {

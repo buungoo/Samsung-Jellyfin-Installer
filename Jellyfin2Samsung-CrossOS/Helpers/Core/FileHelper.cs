@@ -17,61 +17,40 @@ namespace Jellyfin2Samsung.Helpers.Core
         private static readonly string[] tpkItem = ["*.tpk"];
         private static readonly string[] allItem = ["*.wgt", "*.tpk"];
 
-        public async Task<string?> BrowseWgtFilesAsync(IStorageProvider storageProvider)
+
+public async Task<string?> BrowseWgtFilesAsync(IStorageProvider storageProvider)
+{
+    var fileTypes = new List<FilePickerFileType>
+    {
+        new("WGT Files")
         {
-            var fileTypes = new List<FilePickerFileType>
-            {
-                new("WGT Files")
-                {
-                    Patterns = wgtItem
-                },
-                new("TPK Files")
-                {
-                    Patterns = tpkItem
-                },
-                new("All Supported Files")
-                {
-                    Patterns = allItem
-                }
-            };
-
-            var options = new FilePickerOpenOptions
-            {
-                Title = "Select WGT/TPK File",
-                FileTypeFilter = fileTypes,
-                AllowMultiple = true
-            };
-
-            var files = await storageProvider.OpenFilePickerAsync(options);
-
-            if (files?.Any() == true)
-            {
-                var newPaths = new List<string>();
-
-                foreach (var file in files)
-                {
-                    var originalPath = file.Path.LocalPath;
-                    var directory = Path.GetDirectoryName(originalPath);
-                    var baseName = Path.GetFileNameWithoutExtension(originalPath);
-                    var extension = Path.GetExtension(originalPath);
-
-                    var randomSuffix = new string(Enumerable.Range(0, 4)
-                        .Select(_ => Constants.CharacterSets.Alpha[Random.Shared.Next(Constants.CharacterSets.Alpha.Length)])
-                        .ToArray());
-
-                    var newFileName = $"{baseName}{randomSuffix}{extension}";
-                    var newFilePath = Path.Combine(directory ?? Environment.CurrentDirectory, newFileName);
-
-                    File.Copy(originalPath, newFilePath, overwrite: true);
-
-                    newPaths.Add(newFilePath);
-                }
-
-                return string.Join(";", newPaths);
-            }
-
-            return null;
+            Patterns = wgtItem
+        },
+        new("TPK Files")
+        {
+            Patterns = tpkItem
+        },
+        new("All Supported Files")
+        {
+            Patterns = allItem
         }
+    };
+
+    var options = new FilePickerOpenOptions
+    {
+        Title = "Select WGT/TPK File",
+        FileTypeFilter = fileTypes,
+        AllowMultiple = true
+    };
+
+    var files = await storageProvider.OpenFilePickerAsync(options);
+
+    if (files?.Any() == true)
+        return string.Join(";", files.Select(f => f.Path.LocalPath));
+
+    return null;
+}
+
         public List<ExtensionEntry> ParseExtensions(string output)
         {
             var extensions = new List<ExtensionEntry>();

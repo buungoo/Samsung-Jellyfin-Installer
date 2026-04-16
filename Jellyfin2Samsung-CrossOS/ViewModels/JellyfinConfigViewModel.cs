@@ -138,6 +138,9 @@ namespace Jellyfin2Samsung.ViewModels
         private bool canOpenDebugWindow;
 
         [ObservableProperty]
+        private bool showMdnsWarning = false;
+
+        [ObservableProperty]
         private string selectedServerInputMode = "IP : Port";
 
         [ObservableProperty]
@@ -179,6 +182,12 @@ namespace Jellyfin2Samsung.ViewModels
 
         [ObservableProperty]
         private bool darkMode;
+
+        [ObservableProperty]
+        private string gitHubToken = string.Empty;
+
+        [ObservableProperty]
+        private bool showGitHubToken = false;
 
         [ObservableProperty]
         private NetworkInterfaceOption? selectedNetworkInterface;
@@ -291,6 +300,7 @@ namespace Jellyfin2Samsung.ViewModels
         public string LblValidateCss => _localizationService.GetString("lblValidateCss");
         public string LblCssValidationStatus => _localizationService.GetString("lblCssValidationStatus");
         public string LblClearCss => _localizationService.GetString("lblClearCss");
+        public string LblMdnsWarning => _localizationService.GetString("lblMdnsWarning");
 
 
         // Main Settings Tab labels
@@ -307,6 +317,9 @@ namespace Jellyfin2Samsung.ViewModels
         public string LblRTL => _localizationService.GetString("lblRTL");
         public string LblKeepWGTFile => _localizationService.GetString("lblKeepWGTFile");
         public string LblSettingsHeader => _localizationService.GetString("lblSettings");
+        public string LblGitHubToken => _localizationService.GetString("lblGitHubToken");
+        public string LblGitHubTokenHint => _localizationService.GetString("lblGitHubTokenHint");
+        public char GitHubTokenPasswordChar => ShowGitHubToken ? '\0' : '*';
 
         public bool CanLogin => ServerValidated &&
                                 !string.IsNullOrWhiteSpace(JellyfinUsername) &&
@@ -421,6 +434,7 @@ namespace Jellyfin2Samsung.ViewModels
             OnPropertyChanged(nameof(LblCssHint));
             OnPropertyChanged(nameof(LblValidateCss));
             OnPropertyChanged(nameof(LblCssValidationStatus));
+            OnPropertyChanged(nameof(LblMdnsWarning));
             // Main Settings Tab labels
             OnPropertyChanged(nameof(LblTabMainSettings));
             OnPropertyChanged(nameof(LblMainSettings));
@@ -435,6 +449,8 @@ namespace Jellyfin2Samsung.ViewModels
             OnPropertyChanged(nameof(LblRTL));
             OnPropertyChanged(nameof(LblKeepWGTFile));
             OnPropertyChanged(nameof(LblSettingsHeader));
+            OnPropertyChanged(nameof(LblGitHubToken));
+            OnPropertyChanged(nameof(LblGitHubTokenHint));
         }
 
         partial void OnAudioLanguagePreferenceChanged(string? value)
@@ -522,6 +538,8 @@ namespace Jellyfin2Samsung.ViewModels
                 }
                 OnPropertyChanged(nameof(JellyfinBasePath));
                 AppSettings.Default.Save();
+
+                CheckForMdnsHostname(uri.Host);
 
                 // Auto-validate the server connection
                 _ = AutoValidateServerAsync();
@@ -669,6 +687,7 @@ namespace Jellyfin2Samsung.ViewModels
             AppSettings.Default.JellyfinUserId = "";
             AppSettings.Default.JellyfinServerId = "";
             AppSettings.Default.JellyfinServerLocalAddress = "";
+            AppSettings.Default.JellyfinServerName = "";
             AppSettings.Default.IsJellyfinAdmin = false;
             AppSettings.Default.Save();
 
@@ -740,6 +759,12 @@ namespace Jellyfin2Samsung.ViewModels
                     {
                         AppSettings.Default.JellyfinServerLocalAddress = serverInfo.LocalAddress;
                         Trace.WriteLine($"[ServerID] Stored server LocalAddress: {serverInfo.LocalAddress}");
+                    }
+
+                    if (!string.IsNullOrEmpty(serverInfo.ServerName))
+                    {
+                        AppSettings.Default.JellyfinServerName = serverInfo.ServerName;
+                        Trace.WriteLine($"[ServerID] Stored server name: {serverInfo.ServerName}");
                     }
 
                     AppSettings.Default.Save();
@@ -1192,6 +1217,7 @@ namespace Jellyfin2Samsung.ViewModels
                 SelectedJellyfinProtocol = uri.Scheme;
                 JellyfinServerIp = uri.Host;
                 SelectedJellyfinPort = uri.Port.ToString();
+                CheckForMdnsHostname(uri.Host);
             }
             else
             {
@@ -1280,7 +1306,19 @@ namespace Jellyfin2Samsung.ViewModels
                 Trace.WriteLine($"Updated Jellyfin IP: {AppSettings.Default.JellyfinIP}");
                 AppSettings.Default.Save();
                 UpdateServerIpStatus();
+                CheckForMdnsHostname(JellyfinServerIp);
             }
+        }
+
+        /// <summary>
+        /// Checks if the given hostname is an mDNS (.local) address and shows a warning.
+        /// Samsung TVs (Tizen) cannot reliably resolve mDNS hostnames, which causes
+        /// the server to appear as "undefined" on the TV after network disruptions.
+        /// </summary>
+        private void CheckForMdnsHostname(string? hostname)
+        {
+            ShowMdnsWarning = !string.IsNullOrEmpty(hostname) &&
+                              hostname.EndsWith(".local", StringComparison.OrdinalIgnoreCase);
         }
 
         private void UpdateServerIpStatus()
@@ -1316,6 +1354,7 @@ namespace Jellyfin2Samsung.ViewModels
             OpenAfterInstall = AppSettings.Default.OpenAfterInstall;
             KeepWGTFile = AppSettings.Default.KeepWGTFile;
             DarkMode = AppSettings.Default.DarkMode;
+            GitHubToken = AppSettings.Default.GitHubToken ?? string.Empty;
         }
 
         private async Task LoadNetworkInterfacesAsync()
@@ -1331,10 +1370,17 @@ namespace Jellyfin2Samsung.ViewModels
                     foreach (var ni in interfaces)
                         NetworkInterfaces.Add(ni);
 
-                    // Restore previous selection if possible
+                    // Restore previous selection: match by name first (stable across DHCP changes),
+                    // fall back to IP match, then default to first interface
+                    var savedName = AppSettings.Default.SavedNetworkInterfaceName;
+                    var savedIp = AppSettings.Default.LocalIp;
                     SelectedNetworkInterface =
-                        NetworkInterfaces.FirstOrDefault(i =>
-                            i.IpAddress == AppSettings.Default.LocalIp)
+                        (!string.IsNullOrEmpty(savedName)
+                            ? NetworkInterfaces.FirstOrDefault(i => i.Name == savedName)
+                            : null)
+                        ?? (!string.IsNullOrEmpty(savedIp)
+                            ? NetworkInterfaces.FirstOrDefault(i => i.IpAddress == savedIp)
+                            : null)
                         ?? NetworkInterfaces.FirstOrDefault();
                 });
             }
@@ -1398,6 +1444,7 @@ namespace Jellyfin2Samsung.ViewModels
 
             LocalIP = value.IpAddress;
             AppSettings.Default.LocalIp = value.IpAddress;
+            AppSettings.Default.SavedNetworkInterfaceName = value.Name;
             AppSettings.Default.Save();
         }
 
@@ -1479,6 +1526,17 @@ namespace Jellyfin2Samsung.ViewModels
         partial void OnDarkModeChanged(bool value)
         {
             _themeService.SetTheme(value);
+        }
+
+        partial void OnGitHubTokenChanged(string value)
+        {
+            AppSettings.Default.GitHubToken = value;
+            AppSettings.Default.Save();
+        }
+
+        partial void OnShowGitHubTokenChanged(bool value)
+        {
+            OnPropertyChanged(nameof(GitHubTokenPasswordChar));
         }
 
         // ========== End Main Settings Methods ==========
