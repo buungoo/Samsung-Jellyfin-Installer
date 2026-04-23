@@ -47,6 +47,7 @@
   "lblForceLogin": "Samsung-Zertifikat erzwingen",
   "DeveloperModeRequired": "Samsung TV ist nicht im Entwicklermodus...",
   "DeveloperIPMismatch": "Samsung Developer Mode IP stimmt nicht mit der lokalen IP dieses Geräts überein, möchten Sie fortfahren?",
+  "DeveloperIPReversed": "IP is in reversed order on the TV, please re-enable developer mode and type your local IP in reversed order. (ex: 192.168.1.2 → 2.1.168.192)",
   "lblRTL": "Reverse IP (für Arabisch/Hebräisch)",
   "ServerIP": "Server-IP",
   "Theme": "Theme",
