@@ -47,6 +47,7 @@
   "lblForceLogin": "Certificat Samsung obligatoire",
   "DeveloperModeRequired": "Le téléviseur Samsung n'est pas en mode développeur...",
   "DeveloperIPMismatch": "L'adresse IP du mode développeur Samsung ne correspond pas à l'adresse IP locale de cet appareil. Souhaitez-vous continuer ?",
+  "DeveloperIPReversed": "IP is in reversed order on the TV, please re-enable developer mode and type your local IP in reversed order. (ex: 192.168.1.2 → 2.1.168.192)",
   "lblRTL": "Adresse IP inversée (pour l'arabe/l'hébreu)",
   "ServerIP": "IP du serveur",
   "Theme": "Thème",
@@ -149,5 +150,6 @@
   "UpdateError": "Échec de la mise à jour",
   "UpdateCheckFailed": "Échec de la vérification des mises à jour",
   "IncompatiblePackage": "Version du package non compatible avec l'appareil.",
-  "IncompatiblePackageDetailed": "La version du package {0} n'est pas compatible avec Tizen OS {1}"
+  "IncompatiblePackageDetailed": "La version du package {0} n'est pas compatible avec Tizen OS {1}",
+  "lblMdnsWarning": "Attention : Vous utilisez un nom d'hôte mDNS (.local). Les TV Samsung ne peuvent pas résoudre de manière fiable les adresses .local, ce qui peut faire apparaître le serveur comme \"undefined\" sur votre TV — surtout après des interruptions réseau. Utilisez plutôt une adresse IP directe (ex. 192.168.1.100) pour une connexion stable."
 }

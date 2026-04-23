@@ -138,6 +138,9 @@ namespace Jellyfin2Samsung.ViewModels
         private bool canOpenDebugWindow;
 
         [ObservableProperty]
+        private bool showMdnsWarning = false;
+
+        [ObservableProperty]
         private string selectedServerInputMode = "IP : Port";
 
         [ObservableProperty]
@@ -297,6 +300,7 @@ namespace Jellyfin2Samsung.ViewModels
         public string LblValidateCss => _localizationService.GetString("lblValidateCss");
         public string LblCssValidationStatus => _localizationService.GetString("lblCssValidationStatus");
         public string LblClearCss => _localizationService.GetString("lblClearCss");
+        public string LblMdnsWarning => _localizationService.GetString("lblMdnsWarning");
 
 
         // Main Settings Tab labels
@@ -430,6 +434,7 @@ namespace Jellyfin2Samsung.ViewModels
             OnPropertyChanged(nameof(LblCssHint));
             OnPropertyChanged(nameof(LblValidateCss));
             OnPropertyChanged(nameof(LblCssValidationStatus));
+            OnPropertyChanged(nameof(LblMdnsWarning));
             // Main Settings Tab labels
             OnPropertyChanged(nameof(LblTabMainSettings));
             OnPropertyChanged(nameof(LblMainSettings));
@@ -533,6 +538,8 @@ namespace Jellyfin2Samsung.ViewModels
                 }
                 OnPropertyChanged(nameof(JellyfinBasePath));
                 AppSettings.Default.Save();
+
+                CheckForMdnsHostname(uri.Host);
 
                 // Auto-validate the server connection
                 _ = AutoValidateServerAsync();
@@ -680,6 +687,7 @@ namespace Jellyfin2Samsung.ViewModels
             AppSettings.Default.JellyfinUserId = "";
             AppSettings.Default.JellyfinServerId = "";
             AppSettings.Default.JellyfinServerLocalAddress = "";
+            AppSettings.Default.JellyfinServerName = "";
             AppSettings.Default.IsJellyfinAdmin = false;
             AppSettings.Default.Save();
 
@@ -751,6 +759,12 @@ namespace Jellyfin2Samsung.ViewModels
                     {
                         AppSettings.Default.JellyfinServerLocalAddress = serverInfo.LocalAddress;
                         Trace.WriteLine($"[ServerID] Stored server LocalAddress: {serverInfo.LocalAddress}");
+                    }
+
+                    if (!string.IsNullOrEmpty(serverInfo.ServerName))
+                    {
+                        AppSettings.Default.JellyfinServerName = serverInfo.ServerName;
+                        Trace.WriteLine($"[ServerID] Stored server name: {serverInfo.ServerName}");
                     }
 
                     AppSettings.Default.Save();
@@ -1203,6 +1217,7 @@ namespace Jellyfin2Samsung.ViewModels
                 SelectedJellyfinProtocol = uri.Scheme;
                 JellyfinServerIp = uri.Host;
                 SelectedJellyfinPort = uri.Port.ToString();
+                CheckForMdnsHostname(uri.Host);
             }
             else
             {
@@ -1291,7 +1306,19 @@ namespace Jellyfin2Samsung.ViewModels
                 Trace.WriteLine($"Updated Jellyfin IP: {AppSettings.Default.JellyfinIP}");
                 AppSettings.Default.Save();
                 UpdateServerIpStatus();
+                CheckForMdnsHostname(JellyfinServerIp);
             }
+        }
+
+        /// <summary>
+        /// Checks if the given hostname is an mDNS (.local) address and shows a warning.
+        /// Samsung TVs (Tizen) cannot reliably resolve mDNS hostnames, which causes
+        /// the server to appear as "undefined" on the TV after network disruptions.
+        /// </summary>
+        private void CheckForMdnsHostname(string? hostname)
+        {
+            ShowMdnsWarning = !string.IsNullOrEmpty(hostname) &&
+                              hostname.EndsWith(".local", StringComparison.OrdinalIgnoreCase);
         }
 
         private void UpdateServerIpStatus()

@@ -47,6 +47,7 @@
   "lblForceLogin": "Samsung sertifikasını zorla",
   "DeveloperModeRequired": "Samsung TV geliştirici modunda değil...",
   "DeveloperIPMismatch": "Samsung Geliştirici modu IP'si bu cihazın yerel IP'siyle eşleşmiyor, devam etmek istiyor musunuz?",
+  "DeveloperIPReversed": "IP is in reversed order on the TV, please re-enable developer mode and type your local IP in reversed order. (ex: 192.168.1.2 → 2.1.168.192)",
   "lblRTL": "Ters IP (Arapça/İbranice için)",
   "ServerIP": "Sunucu IP",
   "Theme": "Tema",
@@ -149,5 +150,6 @@
   "UpdateError": "Güncelleme başarısız",
   "UpdateCheckFailed": "Güncelleme kontrolü başarısız",
   "IncompatiblePackage": "Paket sürümü cihazla uyumlu değil.",
-  "IncompatiblePackageDetailed": "Paket sürümü {0}, Tizen OS {1} ile uyumlu değil"
+  "IncompatiblePackageDetailed": "Paket sürümü {0}, Tizen OS {1} ile uyumlu değil",
+  "lblMdnsWarning": "Uyarı: Bir mDNS ana bilgisayar adı (.local) kullanıyorsunuz. Samsung TV'ler .local adreslerini güvenilir şekilde çözümleyemez, bu da sunucunun TV'nizde \"undefined\" olarak görünmesine neden olabilir — özellikle ağ kesintilerinden sonra. Kararlı bir bağlantı için bunun yerine doğrudan bir IP adresi (ör. 192.168.1.100) kullanın."
 }

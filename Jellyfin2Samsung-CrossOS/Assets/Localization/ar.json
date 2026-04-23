@@ -47,6 +47,7 @@
   "lblForceLogin": "Force Samsung certificate",
   "DeveloperModeRequired": "Samsung TV is not in developer mode...",
   "DeveloperIPMismatch": "Samsung Developer mode IP doesn't match this devices local IP, do you wish to continue?",
+  "DeveloperIPReversed": "IP is in reversed order on the TV, please re-enable developer mode and type your local IP in reversed order. (ex: 192.168.1.2 → 2.1.168.192)",
   "lblRTL": "Reverse IP (for Arabic/Hebrew)",
   "ServerIP": "Server IP",
   "Theme": "Theme",
@@ -149,5 +150,6 @@
   "UpdateError": "Update failed",
   "UpdateCheckFailed": "Failed to check for updates",
   "IncompatiblePackage": "Package version not compatible with device.",
-  "IncompatiblePackageDetailed": "Package version {0} not compatible with Tizen OS {1}"
+  "IncompatiblePackageDetailed": "Package version {0} not compatible with Tizen OS {1}",
+  "lblMdnsWarning": "Warning: You are using an mDNS hostname (.local). Samsung TVs cannot reliably resolve .local addresses, which may cause the server to appear as \"undefined\" on your TV — especially after network interruptions. Use a direct IP address (e.g. 192.168.1.100) instead for a stable connection."
 }
