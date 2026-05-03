@@ -28,6 +28,8 @@ let
       fontconfig
       freetype
       libGL
+      dejavu_fonts
+      freefont_ttf
 
       # X11 tools 
       xorg.libX11
