@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -17,7 +18,7 @@ namespace Jellyfin2Samsung.Helpers.Core
             _token = token;
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
@@ -26,7 +27,23 @@ namespace Jellyfin2Samsung.Helpers.Core
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
             }
 
-            return base.SendAsync(request, cancellationToken);
+            var response = await base.SendAsync(request, cancellationToken);
+
+            // Token is expired or revoked — retry unauthenticated for public endpoints
+            if (response.StatusCode == HttpStatusCode.Unauthorized &&
+                request.Headers.Authorization != null)
+            {
+                Trace.TraceWarning("[GitHubAuth] Token rejected (401) — retrying without authorization");
+                var retry = new HttpRequestMessage(request.Method, request.RequestUri);
+                foreach (var header in request.Headers)
+                {
+                    if (!string.Equals(header.Key, "Authorization", StringComparison.OrdinalIgnoreCase))
+                        retry.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+                response = await base.SendAsync(retry, cancellationToken);
+            }
+
+            return response;
         }
 
         private static bool IsGitHubRequest(Uri? uri)
