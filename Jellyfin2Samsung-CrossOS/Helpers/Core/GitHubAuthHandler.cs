@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,9 +14,37 @@ namespace Jellyfin2Samsung.Helpers.Core
         private readonly string? _token;
 
         public GitHubAuthHandler(string? token)
-            : base(new HttpClientHandler())
+            : base(CreateInnerHandler())
         {
             _token = token;
+        }
+
+        private static HttpClientHandler CreateInnerHandler()
+        {
+            var handler = new HttpClientHandler();
+
+
+            if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS())
+            {
+                handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                {
+                    if (errors == SslPolicyErrors.None)
+                        return true;
+
+                    var host = message.RequestUri?.Host ?? string.Empty;
+                    if (host.EndsWith("samsung.com", StringComparison.OrdinalIgnoreCase) ||
+                        host.EndsWith("samsungqbe.com", StringComparison.OrdinalIgnoreCase) ||
+                        host.EndsWith("tizen.org", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Trace.TraceWarning($"[SSL] Accepting Samsung cert with validation issue on Linux: {host} ({errors})");
+                        return true;
+                    }
+
+                    return false;
+                };
+            }
+
+            return handler;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
