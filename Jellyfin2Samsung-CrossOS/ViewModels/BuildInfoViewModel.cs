@@ -79,6 +79,12 @@ namespace Jellyfin2Samsung.ViewModels
 
                 JellyfinVersions.Add(new BuildVersion
                 {
+                    FileName = "Litefin",
+                    Description = "Litefin is designed to provide a premium media browsing and playback experience, even on legacy hardware."
+                });
+
+                JellyfinVersions.Add(new BuildVersion
+                {
                     FileName = "Legacy",
                     Description = "Containing 10.8.z build for older model TVs"
                 });
@@ -135,7 +141,8 @@ namespace Jellyfin2Samsung.ViewModels
             // Exceptions inside JellyfinVersions that should NOT use Jellyfin image
             var jellyfinOverrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Moonfin", Constants.PreviewImages.Moonfin }
+                { "Moonfin", Constants.PreviewImages.Moonfin },
+                { "Litefin", Constants.PreviewImages.Litefin },
             };
 
             var jellyfinBitmap = await LoadBitmapAsync(Constants.PreviewImages.Jellyfin);

@@ -76,6 +76,18 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
             if (!servers.Any(s => s?.GetValue<string>() == serverUrl))
                 servers.Add(serverUrl);
 
+            // Add LocalAddress (IP-based) as fallback when the primary URL uses mDNS (.local)
+            // Samsung TVs (Tizen) cannot reliably resolve mDNS hostnames, especially after network disruptions
+            var localAddress = UrlHelper.NormalizeServerUrl(AppSettings.Default.JellyfinServerLocalAddress);
+            if (!string.IsNullOrEmpty(localAddress) &&
+                localAddress != serverUrl &&
+                UrlHelper.IsValidHttpUrl(localAddress) &&
+                !servers.Any(s => s?.GetValue<string>() == localAddress))
+            {
+                servers.Add(localAddress);
+                Trace.WriteLine($"[UpdateServerAddress] Added LocalAddress fallback: {localAddress}");
+            }
+
             await File.WriteAllTextAsync(path, config.ToJsonString());
 
         }
@@ -92,6 +104,7 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
             var serverUrl = UrlHelper.NormalizeServerUrl(AppSettings.Default.JellyfinFullUrl);
             var serverId = AppSettings.Default.JellyfinServerId;
             var localAddress = AppSettings.Default.JellyfinServerLocalAddress;
+            var serverName = AppSettings.Default.JellyfinServerName;
 
             if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(serverUrl))
             {
@@ -99,19 +112,21 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
                 return;
             }
 
-            // If server ID is not stored, try to fetch it now
-            if (string.IsNullOrEmpty(serverId))
+            // If server ID or server name is not stored, try to fetch it now
+            if (string.IsNullOrEmpty(serverId) || string.IsNullOrEmpty(serverName))
             {
-                Trace.WriteLine("[InjectAutoLogin] Server ID not cached, fetching from server...");
+                Trace.WriteLine("[InjectAutoLogin] Server ID/Name not cached, fetching from server...");
                 var serverInfo = await _apiClient.GetPublicSystemInfoAsync(serverUrl);
                 if (serverInfo != null && !string.IsNullOrEmpty(serverInfo.Id))
                 {
                     serverId = serverInfo.Id;
                     localAddress = serverInfo.LocalAddress ?? "";
+                    serverName = serverInfo.ServerName ?? "";
                     AppSettings.Default.JellyfinServerId = serverId;
                     AppSettings.Default.JellyfinServerLocalAddress = localAddress;
+                    AppSettings.Default.JellyfinServerName = serverName;
                     AppSettings.Default.Save();
-                    Trace.WriteLine($"[InjectAutoLogin] Fetched and stored server ID: {serverId}");
+                    Trace.WriteLine($"[InjectAutoLogin] Fetched and stored server ID: {serverId}, Name: {serverName}");
                 }
                 else
                 {
@@ -138,6 +153,7 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
             credentialsScript.AppendLine($"    var serverUrl = '{HtmlUtils.EscapeJsString(serverUrl)}';");
             credentialsScript.AppendLine($"    var serverId = '{HtmlUtils.EscapeJsString(serverId)}';");
             credentialsScript.AppendLine($"    var localAddress = '{HtmlUtils.EscapeJsString(localAddress)}';");
+            credentialsScript.AppendLine($"    var serverName = '{HtmlUtils.EscapeJsString(serverName)}';");
             credentialsScript.AppendLine($"    var userId = '{HtmlUtils.EscapeJsString(userId)}';");
             credentialsScript.AppendLine($"    var accessToken = '{HtmlUtils.EscapeJsString(accessToken)}';");
             credentialsScript.AppendLine();
@@ -145,6 +161,7 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
             credentialsScript.AppendLine("    // Using real server ID (GUID) from /System/Info/Public");
             credentialsScript.AppendLine("    var credentials = {");
             credentialsScript.AppendLine("      Servers: [{");
+            credentialsScript.AppendLine("        Name: serverName || serverUrl,");
             credentialsScript.AppendLine("        ManualAddress: serverUrl,");
             credentialsScript.AppendLine("        LocalAddress: localAddress || serverUrl,");
             credentialsScript.AppendLine("        Id: serverId,");
@@ -157,7 +174,7 @@ namespace Jellyfin2Samsung.Helpers.Jellyfin.Patches
             credentialsScript.AppendLine("    // Store in localStorage");
             credentialsScript.AppendLine("    localStorage.setItem('jellyfin_credentials', JSON.stringify(credentials));");
             credentialsScript.AppendLine();
-            credentialsScript.AppendLine("    console.log('[Auto-Login] Credentials injected for server: ' + serverUrl + ' with ID: ' + serverId);");
+            credentialsScript.AppendLine("    console.log('[Auto-Login] Credentials injected for server: ' + serverName + ' (' + serverUrl + ') with ID: ' + serverId);");
             credentialsScript.AppendLine("  } catch(e) {");
             credentialsScript.AppendLine("    console.error('[Auto-Login] Failed to inject credentials:', e);");
             credentialsScript.AppendLine("  }");

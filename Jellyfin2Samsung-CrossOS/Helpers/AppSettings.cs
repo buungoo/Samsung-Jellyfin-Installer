@@ -39,6 +39,7 @@ namespace Jellyfin2Samsung.Helpers
         public string Certificate { get; set; } = "Jelly2Sams";
         public bool DeletePreviousInstall { get; set; } = false;
         public string UserCustomIP { get; set; } = "";
+        public string SavedNetworkInterfaceName { get; set; } = "";
         public bool ForceSamsungLogin { get; set; } = false;
         public bool RTLReading { get; set; } = false;
         public string JellyfinIP { get; set; } = "";
@@ -49,6 +50,7 @@ namespace Jellyfin2Samsung.Helpers
         public string JellyfinAccessToken { get; set; } = "";
         public string JellyfinServerId { get; set; } = "";
         public string JellyfinServerLocalAddress { get; set; } = "";
+        public string JellyfinServerName { get; set; } = "";
         public string AudioLanguagePreference { get; set; } = "";
         public string SubtitleLanguagePreference { get; set; } = "";
         public bool EnableBackdrops { get; set; } = false;
@@ -76,6 +78,7 @@ namespace Jellyfin2Samsung.Helpers
         public bool PatchYoutubePlugin { get; set; } = false;
         public string CustomCss { get; set; } = "";
         public bool DarkMode { get; set; } = false;
+        public string GitHubToken { get; set; } = "";
         public string LocalYoutubeServer { get; set; } = string.Empty;
 
         // ----- Updater settings -----
@@ -86,13 +89,14 @@ namespace Jellyfin2Samsung.Helpers
         // ----- Application-scoped settings (readonly at runtime) -----
         public string ReleasesUrl { get; set; } = "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases";
         public string AuthorEndpoint { get; set; } = "https://dev.tizen.samsung.com/apis/v2/authors";
-        public string AppVersion { get; set; } = "v2.2.0.3";
+        public string AppVersion { get; set; } = "v2.2.0.9";
         public string TizenSdb { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-sdb/releases";
         public string JellyfinAvRelease { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-jellyfin-avplay/releases";
         public string JellyfinAvReleaseFork { get; set; } = "https://api.github.com/repos/asamahy/tizen-jellyfin-avplay/releases";
         public string JellyfinLegacy { get; set; } = "https://api.github.com/repos/jeppevinkel/jellyfin-tizen-builds/releases/tags/2024-10-27-1821";
         public string CommunityRelease { get; set; } = "https://api.github.com/repos/PatrickSt1991/tizen-community-packages/releases";
         public string MoonfinRelease { get; set; } = "https://api.github.com/repos/Moonfin-Client/Smart-TV/releases";
+        public string LiteFinRelease { get; set; } = "https://api.github.com/repos/MoazSalem/litefin/releases";
         public string ReleaseInfo { get; set; } = "https://raw.githubusercontent.com/jeppevinkel/jellyfin-tizen-builds/refs/heads/master/README.md";
         public string CommunityInfo { get; set; } = "https://raw.githubusercontent.com/PatrickSt1991/tizen-community-packages/refs/heads/main/README.md";
         public AppSettings() { }

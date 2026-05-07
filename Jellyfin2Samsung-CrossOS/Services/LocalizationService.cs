@@ -5,100 +5,120 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace Jellyfin2Samsung.Services
 {
     public class LocalizationService : ILocalizationService
     {
+        private const string DefaultLanguage = "en";
+        private const string LocalizationFolderUri = "avares://Jellyfin2Samsung/Assets/Localization/";
+
         private Dictionary<string, string> _currentStrings = new();
         private readonly Dictionary<string, Dictionary<string, string>> _allStrings = new();
-        private string _currentLanguage = "en";
+        private string _currentLanguage = DefaultLanguage;
 
         public string CurrentLanguage => _currentLanguage;
-        public IEnumerable<string> AvailableLanguages => _allStrings.Keys;
+        public IEnumerable<string> AvailableLanguages => _allStrings.Keys.OrderBy(x => x);
         public event EventHandler? LanguageChanged;
 
         public LocalizationService()
         {
-            LoadLanguagesAsync();
+            LoadLanguages();
         }
 
-        private void LoadLanguagesAsync()
+        private void LoadLanguages()
         {
-            var languages = new[] { "en", "da", "nl", "fr", "de", "tr", "pt" };
+            _allStrings.Clear();
 
-            foreach (var lang in languages)
+            var folderUri = new Uri(LocalizationFolderUri);
+
+            try
             {
-                try
-                {
-                    var uri = new Uri($"avares://Jellyfin2Samsung/Assets/Localization/{lang}.json");
-                    var asset = AssetLoader.Open(uri);
+                var assetUris = AssetLoader.GetAssets(folderUri, null);
 
-                    using var reader = new StreamReader(asset);
-                    var json = reader.ReadToEnd();
-                    var strings = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-
-                    if (strings != null)
-                    {
-                        _allStrings[lang] = strings;
-                    }
-                }
-                catch (Exception ex)
+                foreach (var assetUri in assetUris)
                 {
-                    System.Diagnostics.Trace.WriteLine($"Failed to load language {lang}: {ex}");
+                    if (!assetUri.AbsolutePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var fileName = Path.GetFileNameWithoutExtension(assetUri.AbsolutePath);
+                    if (string.IsNullOrWhiteSpace(fileName))
+                        continue;
+
+                    TryLoadLanguage(fileName);
                 }
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"Failed to enumerate localization assets: {ex}");
+            }
 
-            // Set initial language based on system culture
+            // Always make sure English is attempted as fallback language
+            if (!_allStrings.ContainsKey(DefaultLanguage))
+            {
+                TryLoadLanguage(DefaultLanguage);
+            }
+
             var systemLang = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
-            string configLang = AppSettings.Default.Language;
+            var configLang = AppSettings.Default.Language;
 
-            if (string.IsNullOrEmpty(configLang))
+            var initialLang =
+                !string.IsNullOrWhiteSpace(configLang) && _allStrings.ContainsKey(configLang)
+                    ? configLang
+                    : _allStrings.ContainsKey(systemLang)
+                        ? systemLang
+                        : DefaultLanguage;
+
+            SetLanguage(initialLang);
+        }
+
+        private void TryLoadLanguage(string lang)
+        {
+            try
             {
-                if (_allStrings.ContainsKey(systemLang))
+                var uri = new Uri($"{LocalizationFolderUri}{lang}.json");
+
+                using var asset = AssetLoader.Open(uri);
+                using var reader = new StreamReader(asset);
+                var json = reader.ReadToEnd();
+
+                var strings = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                if (strings != null)
                 {
-                    SetLanguage(systemLang);
-                }
-                else
-                {
-                    SetLanguage("en");
+                    _allStrings[lang] = strings;
                 }
             }
-            else
+            catch (Exception ex)
             {
-                SetLanguage(configLang);
+                System.Diagnostics.Trace.WriteLine($"Failed to load language {lang}: {ex}");
             }
         }
 
         public string GetString(string key)
         {
             if (_currentStrings.TryGetValue(key, out var value))
-            {
                 return value;
-            }
 
-            // Fallback to English if key not found in current language
-            if (_currentLanguage != "en" && _allStrings.TryGetValue("en", out var englishStrings))
-            {
-                if (englishStrings.TryGetValue(key, out var englishValue))
-                {
-                    return englishValue;
-                }
-            }
+            if (_allStrings.TryGetValue(DefaultLanguage, out var englishStrings) &&
+                englishStrings.TryGetValue(key, out var englishValue))
+                return englishValue;
 
-            // Return the key itself if no translation found
             return key;
         }
 
         public void SetLanguage(string languageCode)
         {
-            if (_allStrings.TryGetValue(languageCode, out var strings))
+            if (!_allStrings.TryGetValue(languageCode, out var strings))
             {
-                _currentLanguage = languageCode;
-                _currentStrings = strings;
-                LanguageChanged?.Invoke(this, EventArgs.Empty);
+                languageCode = DefaultLanguage;
+                strings = _allStrings.GetValueOrDefault(DefaultLanguage, new Dictionary<string, string>());
             }
+
+            _currentLanguage = languageCode;
+            _currentStrings = strings;
+            LanguageChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

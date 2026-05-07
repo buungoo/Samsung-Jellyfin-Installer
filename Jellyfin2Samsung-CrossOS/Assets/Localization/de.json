@@ -47,6 +47,7 @@
   "lblForceLogin": "Samsung-Zertifikat erzwingen",
   "DeveloperModeRequired": "Samsung TV ist nicht im Entwicklermodus...",
   "DeveloperIPMismatch": "Samsung Developer Mode IP stimmt nicht mit der lokalen IP dieses Geräts überein, möchten Sie fortfahren?",
+  "DeveloperIPReversed": "IP is in reversed order on the TV, please re-enable developer mode and type your local IP in reversed order. (ex: 192.168.1.2 → 2.1.168.192)",
   "lblRTL": "Reverse IP (für Arabisch/Hebräisch)",
   "ServerIP": "Server-IP",
   "Theme": "Theme",
@@ -91,7 +92,7 @@
   "lblEnableDevLogs": "TV-Debugging aktivieren",
   "lblOpenDebugWindow": "TV-Log öffnen",
   "lblStartLog": "Start",
-  "lblStopLog": "Stoppen",
+  "lblStopLog": "Stopp",
   "lblSaveLogs": "Speichern",
   "lblLaunchOnInstall": "Nach der Installation öffnen",
   "insufficientSpace": "Auf Ihrem Gerät ist nicht genügend Speicherplatz vorhanden. Bitte entfernen Sie einige Apps und versuchen Sie es erneut ...",
@@ -113,6 +114,8 @@
   "lblServerUrl": "Server-URL",
   "lblConnectionStatus": "Server Status",
   "lblAdvancedSettings": "Erweiterte Einstellungen",
+  "lblGitHubToken": "GitHub Token (PAT)",
+  "lblGitHubTokenHint": "Optional. Prevents API rate limiting when fetching releases. Create one at GitHub > Settings > Developer settings > Personal access tokens.",
   "lblTabCss": "CSS Style",
   "lblCssSettings": "Benutzerdefinierte CSS-Einstellungen",
   "lblCustomCss": "Benutzerdefinierter CSS-Code",
@@ -147,5 +150,6 @@
   "UpdateError": "Update fehlgeschlagen",
   "UpdateCheckFailed": "Update-Überprüfung fehlgeschlagen",
   "IncompatiblePackage": "Paketversion ist nicht mit dem Gerät kompatibel.",
-  "IncompatiblePackageDetailed": "Paketversion {0} nicht kompatibel mit Tizen OS {1}"
+  "IncompatiblePackageDetailed": "Paketversion {0} nicht kompatibel mit Tizen OS {1}",
+  "lblMdnsWarning": "Warnung: Du verwendest einen mDNS-Hostnamen (.local). Samsung TVs können .local-Adressen nicht zuverlässig auflösen, was dazu führen kann, dass der Server auf deinem TV als \"undefined\" angezeigt wird — besonders nach Netzwerkunterbrechungen. Verwende stattdessen eine direkte IP-Adresse (z.B. 192.168.1.100) für eine stabile Verbindung."
 }

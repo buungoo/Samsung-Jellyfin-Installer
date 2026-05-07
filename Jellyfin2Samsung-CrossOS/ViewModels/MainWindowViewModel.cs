@@ -481,8 +481,7 @@ namespace Jellyfin2Samsung.ViewModels
                         if (!AppSettings.Default.KeepWGTFile)
                             _packageHelper.CleanupDownloadedPackage(customPath);
 
-                    AppSettings.Default.CustomWgtPath = string.Empty;
-                    AppSettings.Default.Save();
+                    CustomWgtPath = string.Empty;
                 }
                 else
                 {
@@ -626,6 +625,7 @@ namespace Jellyfin2Samsung.ViewModels
                 }
                 await fetch(AppSettings.Default.ReleasesUrl, "Jellyfin - ", string.Empty, 5);
                 await fetch(AppSettings.Default.MoonfinRelease, string.Empty, "Moonfin", 1);
+                await fetch(AppSettings.Default.LiteFinRelease, string.Empty, "Litefin", 1);
                 await fetch(AppSettings.Default.JellyfinAvRelease, string.Empty, "Jellyfin - AVPlay", 1);
                 await fetch(AppSettings.Default.JellyfinAvRelease, string.Empty, "Jellyfin - AVPlay - 10.10z SmartHub", 1);
                 await fetch(AppSettings.Default.JellyfinLegacy, string.Empty, "Jellyfin - Legacy", 1);

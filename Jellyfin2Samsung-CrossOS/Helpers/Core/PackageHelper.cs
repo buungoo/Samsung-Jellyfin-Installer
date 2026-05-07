@@ -97,6 +97,25 @@ namespace Jellyfin2Samsung.Helpers.Core
 
             if (ipMismatch)
             {
+                bool isReversedIp = localIps
+                    .Select(ip => _networkService.InvertIPAddress(ip))
+                    .Contains(selectedDevice.DeveloperIP);
+
+                if (isReversedIp)
+                {
+                    bool continueExecution = await _dialogService.ShowConfirmationAsync(
+                        "IP Reversed",
+                        "DeveloperIPReversed".Localized(),
+                        "keyContinue".Localized(),
+                        "keyStop".Localized());
+                    if (!continueExecution)
+                        return false;
+                    ipMismatch = false;
+                }
+            }
+
+            if (ipMismatch)
+            {
                 bool continueExecution = await _dialogService.ShowConfirmationAsync("IP Mismatch", "DeveloperIPMismatch".Localized(), "keyContinue".Localized(), "keyStop".Localized());
                 if (!continueExecution)
                     return false;

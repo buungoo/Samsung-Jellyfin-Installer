@@ -31,8 +31,8 @@
 
 | Channel    | Version                                                             | Notes                        |
 |------------|---------------------------------------------------------------------|------------------------------|
-| **Stable** | [v2.2.0.3](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.3)                                        | Recommended for most users   |
-| **Beta**   | [N/A](#)                                            | Includes new features        |
+| **Stable** | [v2.2.0.8](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.8)                                        | Recommended for most users   |
+| **Beta**   | [v2.2.0.9-beta](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/tag/v2.2.0.9-beta)                                            | Includes new features        |
 
 <!-- versions:end -->
 
@@ -55,6 +55,8 @@ That’s it. No manual certificate handling required in most cases.
 
 🎥 Full walkthrough:  
 https://www.youtube.com/watch?v=_8mSV5pW-ic
+
+**NixOS:** Clone the [`Samsung2Jellyfin` branch](https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer.git) and run `nix-shell` — the shell environment will automatically build and launch the tool.
 
 ---
 
@@ -88,11 +90,24 @@ https://github.com/PatrickSt1991/tizen-community-packages
 
 ## 🛠️ Support & Contributing
 
-- Bug reports & feature requests: [Issues](../../issues)
-- Ideas & questions: [Discussions](../../discussions)
-- Chat: https://discord.gg/7mga3zh8Cv
+Contributions of all kinds are welcome — whether it’s bug reports, feature requests, code, documentation, or translations.
 
-Contributions are welcome — issues, PRs, translations, or documentation.
+- Bug reports & feature requests: [Issues](../../issues)
+- Ideas, feedback & questions: [Discussions](../../discussions)
+- Community chat: [Discord](https://discord.gg/7mga3zh8Cv)
+
+## 🌍 Translations
+
+Want to help translate **Jellyfin2Samsung**? Community translations are always appreciated.
+
+You can contribute here:
+
+- [Transifex](https://app.transifex.com/madebypatrick/jellyfin2samsung)
+- [Crowdin](https://crowdin.com/project/jellyfin2samsung)
+
+You can help by translating missing strings, improving existing translations, or reviewing your language.
+
+Translation updates are synced back into this repository automatically.
 
 ---
 
@@ -116,5 +131,7 @@ Special thanks to:
 - **jeppevinkel** — for providing the Jellyfin Tizen `.wgt` builds  
   https://github.com/jeppevinkel/jellyfin-tizen-builds
 - **@RadicalMuffinMan** — for the Moonfin client and related work  
-  https://github.com/Moonfin-Client/Tizen
+  https://github.com/Moonfin-Client/Smart-TV
+- **@MoazSalem** — for the Litefin client and related work  
+  https://github.com/MoazSalem/litefin/
 
